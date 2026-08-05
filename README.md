@@ -1,4 +1,4 @@
-package.json
+
 {
   "name": "balleriq",
   "version": "1.0.0",
