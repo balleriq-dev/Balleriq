@@ -2,7 +2,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif" }}>
       <div style={{ textAlign: "center", padding: "40px 20px", borderBottom: "1px solid #1A1A1A" }}>
-        <h1 <img src="/IMG_8424.png" alt="BallerIQ" style={{ maxWidth: "300px", margin: "0 auto", display: "block" }} />
+        <img src="/IMG_8424.png" alt="BallerIQ" style={{ maxWidth: "300px", margin: "0 auto", display: "block" }} />
         <p style={{ color: "#8CFF3C", fontSize: "12px", letterSpacing: "2px", marginTop: "8px" }}>
           SMARTER FOOTBALL INTELLIGENCE
         </p>
