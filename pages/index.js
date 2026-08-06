@@ -24,9 +24,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero mit grossem Logo */}
-      <section style={{ textAlign: "center", padding: "60px 20px 40px" }}>
-        <img src="/logo.png" alt="BallerIQ" style={{ maxWidth: "420px", width: "80%", margin: "0 auto", display: "block" }} />
+      {/* Hero mit Logo */}
+      <section style={{ textAlign: "center", padding: "24px 20px 20px" }}>
+        <img src="/logo.png" alt="BallerIQ" style={{ maxWidth: "180px", width: "50%", margin: "0 auto", display: "block" }} />
       </section>
 
       {/* News Grid */}
