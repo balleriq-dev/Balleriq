@@ -25,7 +25,7 @@ export default function Home() {
       </div>
 
       {/* Hero mit Logo */}
-      <section style={{ textAlign: "center", padding: "24px 20px 20px" }}>
+      <section style={{ textAlign: "center", padding: "8px 20px 4px" }}>
         <img src="/logo.png" alt="BallerIQ" style={{ maxWidth: "180px", width: "50%", margin: "0 auto", display: "block" }} />
       </section>
 
