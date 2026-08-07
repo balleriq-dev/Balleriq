@@ -8,47 +8,99 @@ export default function Home() {
       {/* Sticky Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: "1px solid #1A1A1A", background: "rgba(0,0,0,0.9)", backdropFilter: "blur(6px)" }}>
         <span style={{ fontWeight: 700, letterSpacing: "1px" }}>BALLER<span style={{ color: "#8CFF3C" }}>IQ</span></span>
-        <div style={{ display: "flex", gap: "20px", fontSize: "12px", color: "#9A9A9A", textTransform: "uppercase", letterSpacing: "1px" }}>
-          <span>News</span><span>Marktwerte</span><span>Ligen</span><span>Analyse</span>
+        <div style={{ display: "flex", gap: "16px", fontSize: "11px", color: "#9A9A9A", textTransform: "uppercase", letterSpacing: "1px", overflowX: "auto" }}>
+          <span>News</span><span>Live</span><span>Marktwerte</span><span>Ligen</span><span>Analyse</span>
         </div>
       </nav>
 
       {/* Live Ticker */}
-      <div style={{ overflow: "hidden", borderBottom: "1px solid #1A1A1A", padding: "8px 0" }}>
+      <div style={{ overflow: "hidden", borderBottom: "1px solid #1A1A1A", padding: "8px 0", background: "#0A0A0A" }}>
         <div style={{ display: "flex", whiteSpace: "nowrap", animation: "ticker 25s linear infinite", fontSize: "11px", color: "#9A9A9A", gap: "40px" }}>
-          <span>⚽ Bayern 2:1 Dortmund</span>
-          <span style={{ color: "#8CFF3C" }}>F. Wirtz +9,7%</span>
-          <span>⚽ Real 3:0 Barça</span>
-          <span style={{ color: "#8CFF3C" }}>V. Osimhen +6,2%</span>
+          <span style={{ color: "#8CFF3C" }}>🔴 LIVE Real Madrid 2:1 Barcelona 67'</span>
+          <span>F. Wirtz +9,7%</span>
           <span>⚽ Inter 1:1 Milan</span>
+          <span style={{ color: "#8CFF3C" }}>V. Osimhen +6,2%</span>
         </div>
       </div>
 
-            {/* Logo-Streifen: volle Breite, komplettes Bild sichtbar */}
+      {/* Logo-Banner */}
       <div style={{ width: "100%", background: "#000", borderBottom: "1px solid #1A1A1A" }}>
         <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", height: "auto", display: "block" }} />
       </div>
-      
 
+      {/* HERO: Match of the Day */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "28px 20px" }}>
+        <p style={{ fontSize: "12px", color: "#8CFF3C", letterSpacing: "1px", marginBottom: "10px" }}>⚡ MATCH OF THE DAY</p>
+        <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px", boxShadow: "0 0 20px rgba(140,255,60,0.05)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <span style={{ fontSize: "16px", fontWeight: 600 }}>Real Madrid</span>
+            <span style={{ fontSize: "12px", color: "#9A9A9A" }}>20:45</span>
+            <span style={{ fontSize: "16px", fontWeight: 600 }}>Barcelona</span>
+          </div>
 
-      {/* News Grid */}
-      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 20px 40px" }}>
-        <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>News</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
-          {[
-            "Bellingham fällt zwei Wochen aus",
-            "Leverkusen verlängert mit Xhaka",
-            "Napoli verhandelt Osimhen-Klausel",
-          ].map((title, i) => (
-            <div key={i} style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "8px", padding: "16px" }}>
-              <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>HEUTE</p>
-              <p style={{ fontSize: "14px" }}>{title}</p>
+          <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "6px" }}>BALLERIQ PREDICTION</p>
+          {[["Real Madrid", 62], ["Unentschieden", 21], ["Barcelona", 17]].map(([label, val]) => (
+            <div key={label} style={{ marginBottom: "8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#9A9A9A", marginBottom: "3px" }}>
+                <span>{label}</span><span>{val}%</span>
+              </div>
+              <div style={{ height: "5px", background: "#1A1A1A", borderRadius: "3px", overflow: "hidden" }}>
+                <div style={{ width: `${val}%`, height: "100%", background: "#8CFF3C" }} />
+              </div>
             </div>
           ))}
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginTop: "18px", fontSize: "11px", color: "#9A9A9A" }}>
+            <div>xG <b style={{ color: "#F2F2F0" }}>1.8</b></div>
+            <div>Ballbesitz <b style={{ color: "#F2F2F0" }}>58%</b></div>
+            <div>Ecken <b style={{ color: "#F2F2F0" }}>6</b></div>
+          </div>
+
+          <button style={{ marginTop: "18px", width: "100%", padding: "12px", background: "#8CFF3C", color: "#000", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "13px" }}>
+            MATCH ANALYSIEREN →
+          </button>
         </div>
       </section>
 
-      {/* Ligen-Vorschau */}
+      {/* AI INSIGHT */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 28px" }}>
+        <div style={{ background: "#0A0A0A", border: "1px solid #8CFF3C33", borderRadius: "12px", padding: "20px" }}>
+          <p style={{ fontSize: "12px", color: "#8CFF3C", marginBottom: "8px" }}>🧠 BALLERIQ AI INSIGHT</p>
+          <p style={{ fontSize: "15px", fontWeight: 600, marginBottom: "10px" }}>Warum Bellingham heute entscheidend sein könnte</p>
+          <p style={{ fontSize: "13px", color: "#9A9A9A", lineHeight: 1.5, marginBottom: "12px" }}>
+            Bellingham kommt aktuell auf durchschnittlich 2,4 Schüsse pro Spiel und hat in den letzten 5 Spielen 3 Tore erzielt.
+          </p>
+          <p style={{ fontSize: "12px", color: "#8CFF3C", marginBottom: "14px" }}>BallerIQ Rating: 8.7/10</p>
+          <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
+            VOLLSTÄNDIGE ANALYSE →
+          </button>
+        </div>
+      </section>
+
+      {/* News Grid */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 40px" }}>
+        <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>Top News</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
+          {[
+            { title: "Bellingham fällt zwei Wochen aus", time: "vor 32 Minuten", src: "Real Madrid" },
+            { title: "Leverkusen verlängert mit Xhaka", time: "vor 2 Stunden", src: "Bayer 04" },
+            { title: "Napoli verhandelt Osimhen-Klausel", time: "vor 4 Stunden", src: "Napoli" },
+          ].map((n, i) => (
+            <div key={i} style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "16px" }}>
+              <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>🚨 HEUTE</p>
+              <p style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px" }}>{n.title}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#6E6E6E" }}>
+                <span>{n.time}</span><span>{n.src}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button style={{ marginTop: "16px", padding: "10px 16px", background: "transparent", color: "#9A9A9A", border: "1px solid #1A1A1A", borderRadius: "8px", fontSize: "12px" }}>
+          ALLE NEWS →
+        </button>
+      </section>
+
+      {/* Top 5 Ligen */}
       <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 60px" }}>
         <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>Top 5 Ligen</h2>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
