@@ -24,13 +24,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero mit Logo */}
-      <section style={{ textAlign: "center", padding: "8px 20px 4px" }}>
-        <img src="/logo.png" alt="BallerIQ" style={{ maxWidth: "180px", width: "50%", margin: "0 auto", display: "block" }} />
-      </section>
-
       {/* News Grid */}
-      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 60px" }}>
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 20px 40px" }}>
         <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>News</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
           {[
@@ -44,6 +39,11 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Logo direkt unter den News */}
+      <section style={{ textAlign: "center", padding: "20px 20px 40px" }}>
+        <img src="/logo.png" alt="BallerIQ" style={{ maxWidth: "420px", width: "80%", margin: "0 auto", display: "block" }} />
       </section>
 
       {/* Ligen-Vorschau */}
