@@ -24,10 +24,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Logo-Streifen: volle Breite, komplettes Bild sichtbar */}
+            {/* Logo-Streifen: volle Breite, komplettes Bild sichtbar */}
       <div style={{ width: "100%", background: "#000", borderBottom: "1px solid #1A1A1A" }}>
-        <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", maxHeight: "180px", objectFit: "contain", display: "block", margin: "0 auto" }} />
+        <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", height: "auto", display: "block" }} />
       </div>
+
 
       {/* News Grid */}
       <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 20px 40px" }}>
