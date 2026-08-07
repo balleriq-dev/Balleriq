@@ -77,8 +77,47 @@ export default function Home() {
         </div>
       </section>
 
+      {/* MARKTBEWEGUNGEN */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 28px" }}>
+        <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>📈 Marktbewegungen</h2>
+        <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
+          {[
+            { name: "F. Wirtz", val: "+9.7%", up: true },
+            { name: "L. Yamal", val: "+7.8%", up: true },
+            { name: "J. Bellingham", val: "+3.4%", up: true },
+            { name: "V. Osimhen", val: "-4.2%", up: false },
+          ].map((p, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 16px", borderBottom: i < 3 ? "1px solid #1A1A1A" : "none" }}>
+              <span style={{ fontSize: "13px" }}>{p.name}</span>
+              <span style={{ fontSize: "13px", color: p.up ? "#8CFF3C" : "#FF5C5C" }}>{p.val} {p.up ? "🟢" : "🔴"}</span>
+            </div>
+          ))}
+        </div>
+        <button style={{ marginTop: "12px", padding: "10px 16px", background: "transparent", color: "#9A9A9A", border: "1px solid #1A1A1A", borderRadius: "8px", fontSize: "12px" }}>
+          ALLE MARKTWERTE →
+        </button>
+      </section>
+
+      {/* PLAYER OF THE DAY */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 28px" }}>
+        <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px" }}>
+          <p style={{ fontSize: "12px", color: "#8CFF3C", marginBottom: "8px" }}>🔥 PLAYER OF THE DAY</p>
+          <p style={{ fontSize: "18px", fontWeight: 700, marginBottom: "10px" }}>Jude Bellingham</p>
+          <p style={{ fontSize: "12px", color: "#9A9A9A", marginBottom: "14px" }}>BallerIQ Rating <span style={{ color: "#8CFF3C", fontWeight: 700 }}>8.9/10</span></p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", fontSize: "12px", color: "#9A9A9A", marginBottom: "16px" }}>
+            <div>⚽ Tore: <b style={{ color: "#F2F2F0" }}>3</b></div>
+            <div>🎯 Assists: <b style={{ color: "#F2F2F0" }}>2</b></div>
+            <div>💥 Schüsse: <b style={{ color: "#F2F2F0" }}>14</b></div>
+            <div>🎯 Passquote: <b style={{ color: "#F2F2F0" }}>87%</b></div>
+          </div>
+          <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
+            SPIELER ANALYSIEREN →
+          </button>
+        </div>
+      </section>
+
       {/* News Grid */}
-      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 40px" }}>
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 28px" }}>
         <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>Top News</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
           {[
@@ -98,6 +137,30 @@ export default function Home() {
         <button style={{ marginTop: "16px", padding: "10px 16px", background: "transparent", color: "#9A9A9A", border: "1px solid #1A1A1A", borderRadius: "8px", fontSize: "12px" }}>
           ALLE NEWS →
         </button>
+      </section>
+
+      {/* HEUTIGE SPIELE */}
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 20px 28px" }}>
+        <h2 style={{ fontSize: "18px", marginBottom: "16px", borderLeft: "3px solid #8CFF3C", paddingLeft: "10px" }}>⚽ Heutige Spiele</h2>
+        {[
+          { liga: "🇬🇧 Premier League", spiel: "Arsenal vs Chelsea", zeit: "18:30" },
+          { liga: "🇪🇸 La Liga", spiel: "Real Madrid vs Barcelona", zeit: "20:45" },
+          { liga: "🇮🇹 Serie A", spiel: "Inter vs Milan", zeit: "21:00" },
+        ].map((m, i) => (
+          <div key={i} style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "14px 16px", marginBottom: "10px" }}>
+            <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>{m.liga}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <span style={{ fontSize: "14px" }}>{m.spiel}</span>
+              <span style={{ fontSize: "12px", color: "#9A9A9A" }}>{m.zeit}</span>
+            </div>
+            <div style={{ display: "flex", gap: "8px", fontSize: "10px", color: "#9A9A9A" }}>
+              <span style={{ border: "1px solid #1A1A1A", borderRadius: "6px", padding: "4px 8px" }}>LIVE</span>
+              <span style={{ border: "1px solid #1A1A1A", borderRadius: "6px", padding: "4px 8px" }}>STATS</span>
+              <span style={{ border: "1px solid #1A1A1A", borderRadius: "6px", padding: "4px 8px" }}>ANALYSE</span>
+              <span style={{ border: "1px solid #1A1A1A", borderRadius: "6px", padding: "4px 8px" }}>PREDICTION</span>
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* Top 5 Ligen */}
