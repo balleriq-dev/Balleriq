@@ -1,5 +1,7 @@
 import Link from "next/link";
-import newsData from "../lib/newsData"export default function Home() {
+import newsData from "../lib/newsData";
+
+export default function Home() {
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif" }}>
       <style>{`
