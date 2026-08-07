@@ -59,9 +59,11 @@ export default function Home() {
             <div>Ecken <b style={{ color: "#F2F2F0" }}>6</b></div>
           </div>
 
-          <button style={{ marginTop: "18px", width: "100%", padding: "12px", background: "#8CFF3C", color: "#000", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "13px" }}>
-            MATCH ANALYSIEREN →
-          </button>
+          <Link href="/match-analyse">
+            <button style={{ marginTop: "18px", width: "100%", padding: "12px", background: "#8CFF3C", color: "#000", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "13px" }}>
+              MATCH ANALYSIEREN →
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -74,9 +76,11 @@ export default function Home() {
             Bellingham kommt aktuell auf durchschnittlich 2,4 Schüsse pro Spiel und hat in den letzten 5 Spielen 3 Tore erzielt.
           </p>
           <p style={{ fontSize: "12px", color: "#8CFF3C", marginBottom: "14px" }}>BallerIQ Rating: 8.7/10</p>
-          <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
-            VOLLSTÄNDIGE ANALYSE →
-          </button>
+          <Link href="/spieler/bellingham">
+            <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
+              VOLLSTÄNDIGE ANALYSE →
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -96,9 +100,11 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <button style={{ marginTop: "12px", padding: "10px 16px", background: "transparent", color: "#9A9A9A", border: "1px solid #1A1A1A", borderRadius: "8px", fontSize: "12px" }}>
-          ALLE MARKTWERTE →
-        </button>
+        <Link href="/marktwerte">
+          <button style={{ marginTop: "12px", padding: "10px 16px", background: "transparent", color: "#9A9A9A", border: "1px solid #1A1A1A", borderRadius: "8px", fontSize: "12px" }}>
+            ALLE MARKTWERTE →
+          </button>
+        </Link>
       </section>
 
       {/* PLAYER OF THE DAY */}
@@ -113,9 +119,11 @@ export default function Home() {
             <div>💥 Schüsse: <b style={{ color: "#F2F2F0" }}>14</b></div>
             <div>🎯 Passquote: <b style={{ color: "#F2F2F0" }}>87%</b></div>
           </div>
-          <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
-            SPIELER ANALYSIEREN →
-          </button>
+          <Link href="/spieler/bellingham">
+            <button style={{ padding: "10px 16px", background: "transparent", color: "#8CFF3C", border: "1px solid #8CFF3C", borderRadius: "8px", fontSize: "12px" }}>
+              SPIELER ANALYSIEREN →
+            </button>
+          </Link>
         </div>
       </section>
 
