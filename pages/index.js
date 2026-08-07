@@ -26,7 +26,7 @@ export default function Home() {
 
       {/* Logo-Streifen: volle Breite, komplettes Bild sichtbar */}
       <div style={{ width: "100%", background: "#000", borderBottom: "1px solid #1A1A1A" }}>
-        <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", maxHeight: "180px", objectFit: "contain", display: "block", margin: "0 auto" }} />
+        <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", height: "auto", display: "block" }} />
       </div>
 
       {/* News Grid */}
