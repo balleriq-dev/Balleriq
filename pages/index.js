@@ -28,6 +28,7 @@ export default function Home() {
       <div style={{ width: "100%", background: "#000", borderBottom: "1px solid #1A1A1A" }}>
         <img src="/logo.png" alt="BallerIQ" style={{ width: "100%", height: "auto", display: "block" }} />
       </div>
+      
 
 
       {/* News Grid */}
