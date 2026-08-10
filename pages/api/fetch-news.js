@@ -53,7 +53,6 @@ export default async function handler(req, res) {
     for (const item of items) {
       const title = extractTag(item, "title");
       const description = extractTag(item, "description");
-      const link = extractTag(item, "link");
       if (!title) continue;
 
       const slug = slugify(title);
@@ -71,7 +70,7 @@ export default async function handler(req, res) {
         category: source.name.toUpperCase(),
         title,
         summary: description.slice(0, 150),
-        content: description + (link ? `\n\nQuelle: ${link}` : ""),
+        content: description,
         source: source.name,
       });
       inserted++;
