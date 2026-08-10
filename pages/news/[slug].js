@@ -43,10 +43,7 @@ export default function NewsDetail() {
 
       <article style={{ maxWidth: "700px", margin: "0 auto", padding: "32px 20px 60px" }}>
         <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "10px" }}>{article.category}</p>
-        <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "12px", lineHeight: 1.3 }}>{article.title}</h1>
-        <div style={{ display: "flex", gap: "10px", fontSize: "11px", color: "#6E6E6E", marginBottom: "24px" }}>
-          <span>{article.source}</span>
-        </div>
+        <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "24px", lineHeight: 1.3 }}>{article.title}</h1>
         <p style={{ fontSize: "15px", lineHeight: 1.7, color: "#D0D0D0" }}>{article.content}</p>
       </article>
     </div>
