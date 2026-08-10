@@ -1,16 +1,34 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import newsData from "../../lib/newsData";
+import { getNewsBySlug } from "../../lib/newsData";
 
 export default function NewsDetail() {
   const router = useRouter();
   const { slug } = router.query;
-  const article = newsData.find((n) => n.slug === slug);
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+    getNewsBySlug(slug).then((data) => {
+      setArticle(data);
+      setLoading(false);
+    });
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", padding: "40px", fontFamily: "Inter, sans-serif" }}>
+        <p>Artikel wird geladen...</p>
+      </div>
+    );
+  }
 
   if (!article) {
     return (
       <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", padding: "40px", fontFamily: "Inter, sans-serif" }}>
-        <p>Artikel wird geladen...</p>
+        <p>Artikel nicht gefunden.</p>
       </div>
     );
   }
@@ -27,11 +45,9 @@ export default function NewsDetail() {
         <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "10px" }}>{article.category}</p>
         <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "12px", lineHeight: 1.3 }}>{article.title}</h1>
         <div style={{ display: "flex", gap: "10px", fontSize: "11px", color: "#6E6E6E", marginBottom: "24px" }}>
-          <span>{article.time}</span><span>·</span><span>{article.source}</span>
+          <span>{article.source}</span>
         </div>
-        {article.content.map((p, i) => (
-          <p key={i} style={{ fontSize: "15px", lineHeight: 1.7, color: "#D0D0D0", marginBottom: "16px" }}>{p}</p>
-        ))}
+        <p style={{ fontSize: "15px", lineHeight: 1.7, color: "#D0D0D0" }}>{article.content}</p>
       </article>
     </div>
   );
