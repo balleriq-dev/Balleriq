@@ -33,51 +33,57 @@ function slugify(text) {
     .slice(0, 60);
 }
 
-function getTodaysSource() {
-  const start = new Date(new Date().getFullYear(), 0, 0);
-  const diff = new Date() - start;
-  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const index = dayOfYear % SOURCES.length;
-  return SOURCES[index];
+function buildLongerContent(title, description, category) {
+  const intro = description || title;
+  const kontext = `Die Meldung ordnet sich in die aktuelle Berichterstattung rund um ${category.toLowerCase()} ein und dürfte in den kommenden Stunden weitere Reaktionen von Vereinen, Spielern oder Experten nach sich ziehen.`;
+  const ausblick = `BallerIQ beobachtet die Entwicklung weiter und aktualisiert die Übersicht, sobald neue Informationen vorliegen.`;
+  return `${intro}\n\n${kontext}\n\n${ausblick}`;
 }
 
 export default async function handler(req, res) {
-  const source = getTodaysSource();
+  let totalInserted = 0;
+  const report = [];
 
-  try {
-    const response = await fetch(source.url);
-    const xml = await response.text();
-    const items = xml.split("<item>").slice(1, 8);
+  for (const source of SOURCES) {
+    try {
+      const response = await fetch(source.url);
+      const xml = await response.text();
+      const items = xml.split("<item>").slice(1, 4); // die 3 neuesten je Quelle
 
-    let inserted = 0;
-    for (const item of items) {
-      const title = extractTag(item, "title");
-      const description = extractTag(item, "description");
-      if (!title) continue;
+      let insertedForSource = 0;
+      for (const item of items) {
+        const title = extractTag(item, "title");
+        const description = extractTag(item, "description");
+        if (!title) continue;
 
-      const slug = slugify(title);
+        const slug = slugify(title);
 
-      const { data: existing } = await supabase
-        .from("news")
-        .select("id")
-        .eq("slug", slug)
-        .maybeSingle();
+        const { data: existing } = await supabase
+          .from("news")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
 
-      if (existing) continue;
+        if (existing) continue;
 
-      await supabase.from("news").insert({
-        slug,
-        category: source.name.toUpperCase(),
-        title,
-        summary: description.slice(0, 150),
-        content: description,
-        source: source.name,
-      });
-      inserted++;
+        const content = buildLongerContent(title, description, source.name);
+
+        await supabase.from("news").insert({
+          slug,
+          category: source.name.toUpperCase(),
+          title,
+          summary: (description || title).slice(0, 180),
+          content,
+          source: source.name,
+        });
+        insertedForSource++;
+        totalInserted++;
+      }
+      report.push({ source: source.name, inserted: insertedForSource });
+    } catch (error) {
+      report.push({ source: source.name, error: error.message });
     }
-
-    res.status(200).json({ success: true, source: source.name, inserted });
-  } catch (error) {
-    res.status(500).json({ success: false, source: source.name, error: error.message });
   }
+
+  res.status(200).json({ success: true, totalInserted, report });
 }
