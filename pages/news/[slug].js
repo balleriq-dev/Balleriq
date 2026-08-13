@@ -45,6 +45,17 @@ export default function NewsDetail() {
         <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "10px" }}>{article.category}</p>
         <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "24px", lineHeight: 1.3 }}>{article.title}</h1>
         <p style={{ fontSize: "15px", lineHeight: 1.7, color: "#D0D0D0" }}>{article.content}</p>
+
+        {article.link && (
+          <a
+            href={article.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-block", marginTop: "24px", padding: "12px 20px", background: "#8CFF3C", color: "#000", borderRadius: "8px", textDecoration: "none", fontWeight: 600, fontSize: "13px" }}
+          >
+            Vollständigen Artikel lesen →
+          </a>
+        )}
       </article>
     </div>
   );
