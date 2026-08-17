@@ -6,17 +6,41 @@ const supabase = createClient(
 );
 
 const SOURCES = [
-  { url: "https://newsfeed.kicker.de/news/aktuell" },
-  { url: "https://newsfeed.kicker.de/news/bundesliga" },
-  { url: "https://newsfeed.kicker.de/news/champions-league" },
-  { url: "https://feeds.bbci.co.uk/sport/football/rss.xml" },
-  { url: "https://www.skysports.com/rss/12040" },
-  { url: "https://www.espn.com/espn/rss/soccer/news" },
-  { url: "https://www.sport1.de/rss/fussball" },
-  { url: "https://www.spox.com/de/sport/fussball/rss.xml" },
-  { url: "https://www.bild.de/sport/rss-16725474,feed=rss.bild.html" },
-  { url: "https://www.goal.com/feeds/en/news" },
+  { url: "https://newsfeed.kicker.de/news/aktuell", lang: "de" },
+  { url: "https://newsfeed.kicker.de/news/bundesliga", lang: "de" },
+  { url: "https://newsfeed.kicker.de/news/champions-league", lang: "de" },
+  { url: "https://feeds.bbci.co.uk/sport/football/rss.xml", lang: "en" },
+  { url: "https://www.skysports.com/rss/12040", lang: "en" },
+  { url: "https://www.espn.com/espn/rss/soccer/news", lang: "en" },
+  { url: "https://www.sport1.de/rss/fussball", lang: "de" },
+  { url: "https://www.spox.com/de/sport/fussball/rss.xml", lang: "de" },
+  { url: "https://www.bild.de/sport/rss-16725474,feed=rss.bild.html", lang: "de" },
+  { url: "https://www.goal.com/feeds/en/news", lang: "en" },
 ];
+
+async function translateToGerman(title, description) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: `Übersetze diese Fussball-News ins Deutsche. Antworte NUR mit validem JSON, keine Erklärungen: {"title": "...", "summary": "..."}\n\nTitel: ${title}\nText: ${description}`,
+        },
+      ],
+    }),
+  });
+  const data = await response.json();
+  const text = data.content[0].text;
+  return JSON.parse(text);
+}
 
 function extractTag(xml, tag) {
   const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`);
@@ -45,14 +69,24 @@ export default async function handler(req, res) {
 
       let insertedForSource = 0;
       for (const item of items) {
-        const title = extractTag(item, "title");
-        const description = extractTag(item, "description");
+        let title = extractTag(item, "title");
+        let description = extractTag(item, "description");
         const link = extractTag(item, "link");
         if (!title) continue;
 
         const slug = slugify(title);
         const { data: existing } = await supabase.from("news").select("id").eq("slug", slug).maybeSingle();
         if (existing) continue;
+
+        if (source.lang === "en") {
+          try {
+            const translated = await translateToGerman(title, description || title);
+            title = translated.title || title;
+            description = translated.summary || description;
+          } catch (error) {
+            // Übersetzung fehlgeschlagen, Original-Text wird verwendet
+          }
+        }
 
         await supabase.from("news").insert({
           slug,
