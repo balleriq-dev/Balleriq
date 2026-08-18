@@ -41,7 +41,11 @@ export default function NewsDetail() {
         </Link>
       </nav>
 
-      <article style={{ maxWidth: "700px", margin: "0 auto", padding: "32px 20px 60px" }}>
+      <article style={{ maxWidth: "700px", margin: "0 auto", padding: "0 0 60px" }}>
+        {article.image && (
+          <img src={article.image} alt="" style={{ width: "100%", maxHeight: "360px", objectFit: "cover", display: "block" }} />
+        )}
+        <div style={{ padding: "24px 20px 0" }}>
         <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "10px" }}>{article.category}</p>
         <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "24px", lineHeight: 1.3 }}>{article.title}</h1>
         <p style={{ fontSize: "15px", lineHeight: 1.7, color: "#D0D0D0" }}>{article.content}</p>
@@ -56,6 +60,7 @@ export default function NewsDetail() {
             Vollständigen Artikel lesen →
           </a>
         )}
+        </div>
       </article>
     </div>
   );

@@ -24,6 +24,22 @@ function extractTag(xml, tag) {
   return match ? match[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : "";
 }
 
+function extractImage(itemXml) {
+  const thumbnail = itemXml.match(/<media:thumbnail[^>]*url="([^"]+)"/);
+  if (thumbnail) return thumbnail[1];
+
+  const mediaContent = itemXml.match(/<media:content[^>]*url="([^"]+)"/);
+  if (mediaContent) return mediaContent[1];
+
+  const enclosure = itemXml.match(/<enclosure[^>]*url="([^"]+)"/);
+  if (enclosure) return enclosure[1];
+
+  const imgTag = itemXml.match(/<img[^>]+src="([^"]+)"/);
+  if (imgTag) return imgTag[1];
+
+  return null;
+}
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -91,7 +107,8 @@ export default async function handler(req, res) {
         const title = extractTag(item, "title");
         const description = extractTag(item, "description");
         const link = extractTag(item, "link");
-        if (title) candidates.push({ title, description, link });
+        const image = extractImage(item);
+        if (title) candidates.push({ title, description, link, image });
       }
     } catch (error) {
       // Quelle nicht erreichbar, wird uebersprungen
@@ -119,6 +136,7 @@ export default async function handler(req, res) {
         content: rewritten.content || rewritten.summary || candidate.description || title,
         source: "BallerIQ",
         link: candidate.link,
+        image: candidate.image || null,
       });
     } catch (error) {
       errors.push(error.message);

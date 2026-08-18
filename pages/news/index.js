@@ -27,12 +27,17 @@ export default function AllNews() {
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {newsData.map((n) => (
             <Link key={n.slug} href={`/news/${n.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-              <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "16px" }}>
+              <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
+                {n.image && (
+                  <img src={n.image} alt="" style={{ width: "100%", height: "160px", objectFit: "cover", display: "block" }} />
+                )}
+                <div style={{ padding: "16px" }}>
                 <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>{n.category}</p>
                 <p style={{ fontSize: "15px", fontWeight: 600, marginBottom: "8px" }}>{n.title}</p>
                 <p style={{ fontSize: "13px", color: "#9A9A9A", marginBottom: "8px" }}>{n.summary}</p>
                 <div style={{ fontSize: "10px", color: "#8CFF3C" }}>
                   Weiterlesen →
+                </div>
                 </div>
               </div>
             </Link>
