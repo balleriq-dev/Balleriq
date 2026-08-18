@@ -167,5 +167,10 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(200).json({ success: true, inserted: articles.length, errors });
+  res.status(200).json({
+    success: true,
+    inserted: articles.length,
+    errors,
+    images: articles.map((a) => ({ title: a.title, link: a.link, image: a.image })),
+  });
 }
