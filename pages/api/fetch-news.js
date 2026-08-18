@@ -95,7 +95,7 @@ async function rewriteArticle(title, description) {
       messages: [
         {
           role: "user",
-          content: `Du bist Redakteur bei BallerIQ, einer deutschen Fussball-News-Seite. Schreib diese Meldung in eigenen Worten auf Deutsch als vollständigen kurzen Artikel (3-5 Sätze, sachlich, ohne Erfindungen, ohne andere Medien/Quellen zu nennen). Antworte NUR mit validem JSON, keine Erklärungen: {"title": "...", "summary": "eine Zeile Zusammenfassung", "content": "der vollstaendige Artikeltext"}\n\nOriginal-Titel: ${title}\nOriginal-Text: ${description}`,
+          content: `Du bist Redakteur bei BallerIQ, einer deutschen Fussball-News-Seite (Vereinsfussball, Nationalmannschaften, Transfers - NICHT American Football, Radsport, Leichtathletik oder andere Sportarten). Pruefe zuerst, ob diese Meldung wirklich Fussball betrifft. Falls nein, antworte NUR mit {"isFootball": false}. Falls ja, schreib die Meldung in eigenen Worten auf Deutsch als vollständigen kurzen Artikel (3-5 Sätze, sachlich, ohne Erfindungen, ohne andere Medien/Quellen zu nennen). Antworte NUR mit validem JSON, keine Erklärungen: {"isFootball": true, "title": "...", "summary": "eine Zeile Zusammenfassung", "content": "der vollstaendige Artikeltext"}\n\nOriginal-Titel: ${title}\nOriginal-Text: ${description}`,
         },
       ],
     }),
@@ -129,18 +129,19 @@ export default async function handler(req, res) {
     }
   }
 
-  const selected = [];
+  const deduped = [];
   for (const candidate of candidates) {
-    const isDuplicateTopic = selected.some((s) => isSimilarTopic(s.title, candidate.title));
-    if (!isDuplicateTopic) selected.push(candidate);
-    if (selected.length === 5) break;
+    const isDuplicateTopic = deduped.some((s) => isSimilarTopic(s.title, candidate.title));
+    if (!isDuplicateTopic) deduped.push(candidate);
   }
 
   const articles = [];
   const errors = [];
-  for (const candidate of selected) {
+  for (const candidate of deduped) {
+    if (articles.length >= 5) break;
     try {
       const rewritten = await rewriteArticle(candidate.title, candidate.description || candidate.title);
+      if (rewritten.isFootball === false) continue;
       const title = rewritten.title || candidate.title;
       const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null);
       articles.push({
