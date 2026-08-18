@@ -38,8 +38,12 @@ async function translateToGerman(title, description) {
     }),
   });
   const data = await response.json();
+  if (!data.content || !data.content[0]) {
+    throw new Error("Anthropic-Antwort ohne content: " + JSON.stringify(data).slice(0, 200));
+  }
   const text = data.content[0].text;
-  return JSON.parse(text);
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(jsonMatch ? jsonMatch[0] : text);
 }
 
 function extractTag(xml, tag) {
@@ -68,6 +72,7 @@ export default async function handler(req, res) {
       const items = xml.split("<item>").slice(1, 4);
 
       let insertedForSource = 0;
+      let translationErrors = [];
       for (const item of items) {
         let title = extractTag(item, "title");
         let description = extractTag(item, "description");
@@ -84,7 +89,7 @@ export default async function handler(req, res) {
             title = translated.title || title;
             description = translated.summary || description;
           } catch (error) {
-            // Übersetzung fehlgeschlagen, Original-Text wird verwendet
+            translationErrors.push(error.message);
           }
         }
 
@@ -100,7 +105,7 @@ export default async function handler(req, res) {
         insertedForSource++;
         totalInserted++;
       }
-      report.push({ inserted: insertedForSource });
+      report.push({ inserted: insertedForSource, translationErrors });
     } catch (error) {
       report.push({ error: error.message });
     }
