@@ -40,6 +40,20 @@ function extractImage(itemXml) {
   return null;
 }
 
+async function fetchOgImage(link) {
+  try {
+    const response = await fetch(link, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const html = await response.text();
+    const ogMatch =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+      html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+    return ogMatch ? ogMatch[1] : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -97,16 +111,12 @@ async function rewriteArticle(title, description) {
 
 export default async function handler(req, res) {
   const candidates = [];
-  let debugSample = null;
 
   for (const url of SOURCES) {
     try {
       const response = await fetch(url);
       const xml = await response.text();
       const items = xml.split("<item>").slice(1, 4);
-      if (req.query.debug && !debugSample && items[0]) {
-        debugSample = items[0].slice(0, 1500);
-      }
       for (const item of items) {
         const title = extractTag(item, "title");
         const description = extractTag(item, "description");
@@ -132,6 +142,7 @@ export default async function handler(req, res) {
     try {
       const rewritten = await rewriteArticle(candidate.title, candidate.description || candidate.title);
       const title = rewritten.title || candidate.title;
+      const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null);
       articles.push({
         slug: slugify(title),
         category: "BALLERIQ",
@@ -140,7 +151,7 @@ export default async function handler(req, res) {
         content: rewritten.content || rewritten.summary || candidate.description || title,
         source: "BallerIQ",
         link: candidate.link,
-        image: candidate.image || null,
+        image,
       });
     } catch (error) {
       errors.push(error.message);
@@ -155,5 +166,5 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(200).json({ success: true, inserted: articles.length, errors, debugSample });
+  res.status(200).json({ success: true, inserted: articles.length, errors });
 }
