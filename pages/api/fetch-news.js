@@ -48,9 +48,9 @@ async function fetchOgImage(link) {
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
       html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
-    return ogMatch ? ogMatch[1] : null;
+    return { image: ogMatch ? ogMatch[1] : null, status: response.status, htmlSample: ogMatch ? null : html.slice(0, 600) };
   } catch (error) {
-    return null;
+    return { image: null, status: "fetch-error", error: error.message };
   }
 }
 
@@ -137,13 +137,19 @@ export default async function handler(req, res) {
 
   const articles = [];
   const errors = [];
+  const imageDebug = [];
   for (const candidate of deduped) {
     if (articles.length >= 5) break;
     try {
       const rewritten = await rewriteArticle(candidate.title, candidate.description || candidate.title);
       if (rewritten.isFootball === false) continue;
       const title = rewritten.title || candidate.title;
-      const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null);
+      let image = candidate.image || null;
+      if (!image && candidate.link) {
+        const ogResult = await fetchOgImage(candidate.link);
+        image = ogResult.image;
+        imageDebug.push({ link: candidate.link, ...ogResult });
+      }
       articles.push({
         slug: slugify(title),
         category: "BALLERIQ",
@@ -167,10 +173,5 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(200).json({
-    success: true,
-    inserted: articles.length,
-    errors,
-    images: articles.map((a) => ({ title: a.title, link: a.link, image: a.image })),
-  });
+  res.status(200).json({ success: true, inserted: articles.length, errors, imageDebug });
 }
