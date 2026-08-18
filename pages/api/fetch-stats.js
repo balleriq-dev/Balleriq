@@ -6,7 +6,6 @@ const supabase = createClient(
 );
 
 const LEAGUE_ID = 78; // Bundesliga
-const SEASON = 2026;
 
 const RAPIDAPI_HEADERS = {
   "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
@@ -24,14 +23,29 @@ async function apiFootball(path) {
   return data.response || [];
 }
 
+async function findeAktuelleSaison() {
+  const jetzt = new Date();
+  const kandidat = jetzt.getMonth() >= 5 ? jetzt.getFullYear() : jetzt.getFullYear() - 1;
+  for (const jahr of [kandidat, kandidat - 1, kandidat + 1]) {
+    const standings = await apiFootball(`/standings?league=${LEAGUE_ID}&season=${jahr}`);
+    if (standings?.[0]?.league?.standings?.[0]?.length > 0) {
+      return { jahr, standings };
+    }
+  }
+  return { jahr: kandidat, standings: [] };
+}
+
 export default async function handler(req, res) {
   const errors = [];
   let teamsUpserted = 0;
   let matchesUpserted = 0;
+  let SEASON = null;
 
   try {
-    const standings = await apiFootball(`/standings?league=${LEAGUE_ID}&season=${SEASON}`);
+    const { jahr, standings } = await findeAktuelleSaison();
+    SEASON = jahr;
     const table = standings?.[0]?.league?.standings?.[0] || [];
+    if (table.length === 0) errors.push(`Keine Tabellendaten fuer Saison ${jahr} gefunden.`);
 
     const teamStatsFailed = [];
     for (const row of table) {
@@ -82,6 +96,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!SEASON) throw new Error("Keine gueltige Saison gefunden");
     const fixtures = await apiFootball(`/fixtures?league=${LEAGUE_ID}&season=${SEASON}&next=10`);
 
     for (const fx of fixtures) {
@@ -154,6 +169,7 @@ export default async function handler(req, res) {
 
   res.status(200).json({
     success: true,
+    season: SEASON,
     teamsUpserted,
     matchesUpserted,
     squadsUpserted,
