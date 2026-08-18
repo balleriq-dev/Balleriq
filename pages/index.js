@@ -18,8 +18,11 @@ export default function Home() {
       {/* Sticky Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: "1px solid #1A1A1A", background: "rgba(0,0,0,0.9)", backdropFilter: "blur(6px)" }}>
         <span style={{ fontWeight: 700, letterSpacing: "1px" }}>BALLER<span style={{ color: "#8CFF3C" }}>IQ</span></span>
-        <div style={{ display: "flex", gap: "16px", fontSize: "11px", color: "#9A9A9A", textTransform: "uppercase", letterSpacing: "1px", overflowX: "auto" }}>
-          <span>News</span><span>Live</span><span>Marktwerte</span><span>Ligen</span><span>Analyse</span>
+        <div style={{ display: "flex", gap: "16px", fontSize: "11px", color: "#9A9A9A", textTransform: "uppercase", letterSpacing: "1px", overflowX: "auto", whiteSpace: "nowrap" }}>
+          <Link href="/news" style={{ color: "#9A9A9A", textDecoration: "none" }}>News</Link>
+          <span>Live</span>
+          <span>Ligen</span>
+          <Link href="/stats" style={{ color: "#9A9A9A", textDecoration: "none" }}>Stats</Link>
         </div>
       </nav>
 
