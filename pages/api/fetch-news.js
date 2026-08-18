@@ -48,9 +48,9 @@ async function fetchOgImage(link) {
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
       html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
-    return { image: ogMatch ? ogMatch[1] : null, status: response.status, htmlSample: ogMatch ? null : html.slice(0, 600) };
+    return ogMatch ? ogMatch[1] : null;
   } catch (error) {
-    return { image: null, status: "fetch-error", error: error.message };
+    return null;
   }
 }
 
@@ -122,7 +122,8 @@ export default async function handler(req, res) {
         const description = extractTag(item, "description");
         const link = extractTag(item, "link");
         const image = extractImage(item);
-        if (title) candidates.push({ title, description, link, image });
+        const domain = new URL(url).hostname;
+        if (title) candidates.push({ title, description, link, image, domain });
       }
     } catch (error) {
       // Quelle nicht erreichbar, wird uebersprungen
@@ -137,19 +138,16 @@ export default async function handler(req, res) {
 
   const articles = [];
   const errors = [];
-  const imageDebug = [];
+  const domainCounts = {};
+  const MAX_PER_DOMAIN = 2;
   for (const candidate of deduped) {
     if (articles.length >= 5) break;
+    if ((domainCounts[candidate.domain] || 0) >= MAX_PER_DOMAIN) continue;
     try {
       const rewritten = await rewriteArticle(candidate.title, candidate.description || candidate.title);
       if (rewritten.isFootball === false) continue;
       const title = rewritten.title || candidate.title;
-      let image = candidate.image || null;
-      if (!image && candidate.link) {
-        const ogResult = await fetchOgImage(candidate.link);
-        image = ogResult.image;
-        imageDebug.push({ link: candidate.link, ...ogResult });
-      }
+      const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null);
       articles.push({
         slug: slugify(title),
         category: "BALLERIQ",
@@ -160,6 +158,7 @@ export default async function handler(req, res) {
         link: candidate.link,
         image,
       });
+      domainCounts[candidate.domain] = (domainCounts[candidate.domain] || 0) + 1;
     } catch (error) {
       errors.push(error.message);
     }
@@ -173,5 +172,5 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(200).json({ success: true, inserted: articles.length, errors, imageDebug });
+  res.status(200).json({ success: true, inserted: articles.length, errors });
 }
