@@ -147,7 +147,7 @@ export default async function handler(req, res) {
       const rewritten = await rewriteArticle(candidate.title, candidate.description || candidate.title);
       if (rewritten.isFootball === false) continue;
       const title = rewritten.title || candidate.title;
-      const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null);
+      const image = candidate.image || (candidate.link ? await fetchOgImage(candidate.link) : null) || "/news-placeholder.svg";
       articles.push({
         slug: slugify(title),
         category: "BALLERIQ",

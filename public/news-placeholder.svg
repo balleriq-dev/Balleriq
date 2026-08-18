@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#0A0A0A"/>
+  <rect width="800" height="450" fill="none" stroke="#1A1A1A" stroke-width="2"/>
+  <circle cx="400" cy="185" r="70" fill="none" stroke="#8CFF3C" stroke-width="3"/>
+  <path d="M400 125 L437 152 L423 196 L377 196 L363 152 Z" fill="none" stroke="#8CFF3C" stroke-width="3"/>
+  <text x="400" y="320" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#F2F2F0" text-anchor="middle">BALLER<tspan fill="#8CFF3C">IQ</tspan></text>
+</svg>
