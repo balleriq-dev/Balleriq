@@ -97,12 +97,16 @@ async function rewriteArticle(title, description) {
 
 export default async function handler(req, res) {
   const candidates = [];
+  let debugSample = null;
 
   for (const url of SOURCES) {
     try {
       const response = await fetch(url);
       const xml = await response.text();
       const items = xml.split("<item>").slice(1, 4);
+      if (req.query.debug && !debugSample && items[0]) {
+        debugSample = items[0].slice(0, 1500);
+      }
       for (const item of items) {
         const title = extractTag(item, "title");
         const description = extractTag(item, "description");
@@ -151,5 +155,5 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(200).json({ success: true, inserted: articles.length, errors });
+  res.status(200).json({ success: true, inserted: articles.length, errors, debugSample });
 }
