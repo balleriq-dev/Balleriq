@@ -102,7 +102,7 @@ export default async function handler(req, res) {
   for (const candidate of candidates) {
     const isDuplicateTopic = selected.some((s) => isSimilarTopic(s.title, candidate.title));
     if (!isDuplicateTopic) selected.push(candidate);
-    if (selected.length === 4) break;
+    if (selected.length === 5) break;
   }
 
   const articles = [];
@@ -125,9 +125,12 @@ export default async function handler(req, res) {
     }
   }
 
-  await supabase.from("news").delete().neq("id", 0);
   if (articles.length > 0) {
-    await supabase.from("news").insert(articles);
+    const { data: inserted } = await supabase.from("news").insert(articles).select("id");
+    const newIds = (inserted || []).map((row) => row.id);
+    if (newIds.length > 0) {
+      await supabase.from("news").delete().not("id", "in", `(${newIds.join(",")})`);
+    }
   }
 
   res.status(200).json({ success: true, inserted: articles.length, errors });
