@@ -80,8 +80,8 @@ export default async function handler(req, res) {
         if (!title) continue;
 
         const slug = slugify(title);
-        const { data: existing } = await supabase.from("news").select("id").eq("slug", slug).maybeSingle();
-        if (existing) continue;
+        const { data: existing } = await supabase.from("news").select("id").eq("slug", slug).limit(1);
+        if (existing && existing.length > 0) continue;
 
         if (source.lang === "en") {
           try {
@@ -109,6 +109,16 @@ export default async function handler(req, res) {
     } catch (error) {
       report.push({ error: error.message });
     }
+  }
+
+  const { data: allNews } = await supabase
+    .from("news")
+    .select("id")
+    .order("created_at", { ascending: false });
+
+  if (allNews && allNews.length > 4) {
+    const idsToDelete = allNews.slice(4).map((n) => n.id);
+    await supabase.from("news").delete().in("id", idsToDelete);
   }
 
   res.status(200).json({ success: true, totalInserted, report });
