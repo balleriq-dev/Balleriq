@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { WETTBEWERBE, SPIELE, TABELLE } from "../lib/statsData";
+import { WETTBEWERBE, getSpiele, getTabelle } from "../lib/statsData";
 
 export default function Stats() {
   const [aktiv, setAktiv] = useState("bl");
-  const spiele = SPIELE[aktiv] || [];
-  const tabelle = TABELLE[aktiv] || [];
+  const [spiele, setSpiele] = useState([]);
+  const [tabelle, setTabelle] = useState([]);
+  const [loading, setLoading] = useState(true);
   const formFarbe = { S: "#8CFF3C", U: "#6E6E6E", N: "#5A5A5A" };
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([getSpiele(aktiv), getTabelle(aktiv)]).then(([s, t]) => {
+      setSpiele(s);
+      setTabelle(t);
+      setLoading(false);
+    });
+  }, [aktiv]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif" }}>
@@ -40,15 +50,21 @@ export default function Stats() {
               <span style={{ fontSize: "11px", color: "#6E6E6E" }}>{s.zeit}</span>
               <span style={{ fontSize: "14px", fontWeight: 600 }}>{s.gast}</span>
             </div>
-            <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>BALLERIQ PREDICTION</p>
-            <div style={{ display: "flex", gap: "6px" }}>
-              {[["1", s.pHeim], ["X", s.pX], ["2", s.pGast]].map(([label, val]) => (
-                <div key={label} style={{ flex: 1, background: "#141414", borderRadius: "6px", padding: "8px", textAlign: "center" }}>
-                  <div style={{ fontSize: "10px", color: "#6E6E6E" }}>{label}</div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#8CFF3C" }}>{val}%</div>
+            {s.pHeim != null ? (
+              <>
+                <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "6px" }}>BALLERIQ PREDICTION</p>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {[["1", s.pHeim], ["X", s.pX], ["2", s.pGast]].map(([label, val]) => (
+                    <div key={label} style={{ flex: 1, background: "#141414", borderRadius: "6px", padding: "8px", textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#6E6E6E" }}>{label}</div>
+                      <div style={{ fontSize: "14px", fontWeight: 700, color: "#8CFF3C" }}>{val}%</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <p style={{ fontSize: "11px", color: "#6E6E6E" }}>Prediction noch nicht verfügbar</p>
+            )}
           </div>
         ))}
 

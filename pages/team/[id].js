@@ -1,13 +1,23 @@
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { TEAMS } from "../../lib/statsData";
+import { getTeam } from "../../lib/statsData";
 
 export default function TeamDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const team = TEAMS[id];
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!team) {
+  useEffect(() => {
+    if (!id) return;
+    getTeam(id).then((data) => {
+      setTeam(data);
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", padding: "40px", fontFamily: "Inter, sans-serif" }}>
         <p>Team wird geladen...</p>
@@ -15,12 +25,18 @@ export default function TeamDetail() {
     );
   }
 
+  if (!team) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", padding: "40px", fontFamily: "Inter, sans-serif" }}>
+        <p>Team nicht gefunden.</p>
+      </div>
+    );
+  }
+
   const stats = [
-    ["Tore / Spiel", team.torePro],
-    ["Gegentore / Spiel", team.gegentorePro],
-    ["Ballbesitz", team.ballbesitz + "%"],
-    ["Ecken / Spiel", team.ecken],
-    ["Karten / Spiel", team.karten],
+    ["Tore / Spiel", team.torePro ?? "-"],
+    ["Gegentore / Spiel", team.gegentorePro ?? "-"],
+    ["Karten / Spiel", team.karten ?? "-"],
   ];
 
   return (
@@ -30,8 +46,13 @@ export default function TeamDetail() {
       </nav>
 
       <section style={{ maxWidth: "800px", margin: "0 auto", padding: "28px 20px 60px" }}>
-        <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "8px" }}>{team.liga}</p>
-        <h1 style={{ fontSize: "26px", fontWeight: 700, marginBottom: "24px" }}>{team.name}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
+          {team.logo && <img src={team.logo} alt="" style={{ width: "48px", height: "48px", objectFit: "contain" }} />}
+          <div>
+            <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "4px" }}>{team.liga}</p>
+            <h1 style={{ fontSize: "26px", fontWeight: 700 }}>{team.name}</h1>
+          </div>
+        </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginBottom: "32px" }}>
           {stats.map(([label, val]) => (
@@ -43,6 +64,7 @@ export default function TeamDetail() {
         </div>
 
         <h2 style={{ fontSize: "15px", marginBottom: "12px", color: "#8CFF3C" }}>👥 Kader</h2>
+        {team.kader.length === 0 && <p style={{ fontSize: "13px", color: "#6E6E6E" }}>Kader wird noch geladen.</p>}
         <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
           {team.kader.map((s, i) => (
             <Link key={s.id} href={`/spieler/${s.id}`} style={{ textDecoration: "none", color: "inherit" }}>
