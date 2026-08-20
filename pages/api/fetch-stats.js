@@ -5,7 +5,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const COMPETITION = "BL1"; // Bundesliga
+const LIGEN = [
+  { code: "BL1", name: "Bundesliga" },
+  { code: "PL", name: "Premier League" },
+  { code: "PD", name: "La Liga" },
+  { code: "SA", name: "Serie A" },
+  { code: "FL1", name: "Ligue 1" },
+  { code: "CL", name: "Champions League" },
+];
 
 async function footballData(path) {
   const response = await fetch(`https://api.football-data.org/v4${path}`, {
@@ -31,35 +38,33 @@ function berechnePrediction(heim, gast) {
   const heimStaerke = heimForm + 0.5; // Heimvorteil
   const gastStaerke = gastForm + 0.15;
   const gesamt = heimStaerke + gastStaerke;
-  let pHeim = Math.max(Math.round((heimStaerke / gesamt) * 70), 8);
-  let pGast = Math.max(Math.round((gastStaerke / gesamt) * 70), 8);
+  const pHeim = Math.max(Math.round((heimStaerke / gesamt) * 70), 8);
+  const pGast = Math.max(Math.round((gastStaerke / gesamt) * 70), 8);
   const pX = 100 - pHeim - pGast;
   return { pHeim, pX, pGast };
 }
 
-export default async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
-  const errors = [];
+function warten(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function verarbeiteLiga(code, ligaName, errors) {
+  const teamLookup = {};
   let teamsUpserted = 0;
   let matchesUpserted = 0;
   let squadsUpserted = 0;
-  const teamLookup = {};
 
   try {
-    const standingsData = await footballData(`/competitions/${COMPETITION}/standings`);
+    const standingsData = await footballData(`/competitions/${code}/standings`);
     const table = standingsData?.standings?.[0]?.table || [];
 
-    for (const row of table) {
+    const teamRows = table.map((row) => {
       const team = row.team;
-      const toreProSpiel = row.playedGames ? Number((row.goalsFor / row.playedGames).toFixed(1)) : null;
-      const gegentoreProSpiel = row.playedGames ? Number((row.goalsAgainst / row.playedGames).toFixed(1)) : null;
-
       teamLookup[team.id] = { punkte: row.points, spiele: row.playedGames };
-
-      const { error: teamError } = await supabase.from("teams").upsert({
+      return {
         id: String(team.id),
         name: team.name,
-        liga: "Bundesliga",
+        liga: ligaName,
         logo: team.crest,
         platz: row.position,
         spiele: row.playedGames,
@@ -70,64 +75,91 @@ export default async function handler(req, res) {
         tore_kassiert: row.goalsAgainst,
         punkte: row.points,
         form: row.form,
-        tore_pro: toreProSpiel,
-        gegentore_pro: gegentoreProSpiel,
-      });
-      if (teamError) errors.push(`Team ${team.name}: ${teamError.message}`);
-      else teamsUpserted++;
+        tore_pro: row.playedGames ? Number((row.goalsFor / row.playedGames).toFixed(1)) : null,
+        gegentore_pro: row.playedGames ? Number((row.goalsAgainst / row.playedGames).toFixed(1)) : null,
+      };
+    });
+
+    if (teamRows.length > 0) {
+      const { error } = await supabase.from("teams").upsert(teamRows);
+      if (error) errors.push(`${ligaName} Teams: ${error.message}`);
+      else teamsUpserted = teamRows.length;
     }
   } catch (error) {
-    errors.push(`Tabelle: ${error.message}`);
+    errors.push(`${ligaName} Tabelle: ${error.message}`);
   }
 
   try {
-    const matchesData = await footballData(`/competitions/${COMPETITION}/matches?status=SCHEDULED`);
+    const matchesData = await footballData(`/competitions/${code}/matches?status=SCHEDULED`);
     const fixtures = (matchesData?.matches || []).slice(0, 10);
 
-    for (const fx of fixtures) {
+    const matchRows = fixtures.map((fx) => {
       const { pHeim, pX, pGast } = berechnePrediction(teamLookup[fx.homeTeam.id], teamLookup[fx.awayTeam.id]);
-      const datum = fx.utcDate ? fx.utcDate.slice(0, 10) : null;
-      const zeit = fx.utcDate ? fx.utcDate.slice(11, 16) : null;
-
-      const { error: matchError } = await supabase.from("spiele").upsert({
+      return {
         id: String(fx.id),
-        liga: "Bundesliga",
+        liga: ligaName,
         heim_id: String(fx.homeTeam.id),
         heim_name: fx.homeTeam.name,
         heim_logo: fx.homeTeam.crest,
         gast_id: String(fx.awayTeam.id),
         gast_name: fx.awayTeam.name,
         gast_logo: fx.awayTeam.crest,
-        datum,
-        zeit,
+        datum: fx.utcDate ? fx.utcDate.slice(0, 10) : null,
+        zeit: fx.utcDate ? fx.utcDate.slice(11, 16) : null,
         p_heim: pHeim,
         p_x: pX,
         p_gast: pGast,
         status: fx.status,
-      });
-      if (matchError) errors.push(`Spiel ${fx.homeTeam.name} vs ${fx.awayTeam.name}: ${matchError.message}`);
-      else matchesUpserted++;
+      };
+    });
+
+    if (matchRows.length > 0) {
+      const { error } = await supabase.from("spiele").upsert(matchRows);
+      if (error) errors.push(`${ligaName} Spielplan: ${error.message}`);
+      else matchesUpserted = matchRows.length;
     }
   } catch (error) {
-    errors.push(`Spielplan: ${error.message}`);
+    errors.push(`${ligaName} Spielplan: ${error.message}`);
   }
 
   try {
-    const teamsData = await footballData(`/competitions/${COMPETITION}/teams`);
+    const teamsData = await footballData(`/competitions/${code}/teams`);
+    const spielerRows = [];
     for (const team of teamsData?.teams || []) {
       for (const p of team.squad || []) {
-        const { error: spielerError } = await supabase.from("spieler").upsert({
+        spielerRows.push({
           id: String(p.id),
           team_id: String(team.id),
           name: p.name,
           pos: p.position,
         });
-        if (!spielerError) squadsUpserted++;
       }
     }
+    if (spielerRows.length > 0) {
+      const { error } = await supabase.from("spieler").upsert(spielerRows);
+      if (error) errors.push(`${ligaName} Kader: ${error.message}`);
+      else squadsUpserted = spielerRows.length;
+    }
   } catch (error) {
-    errors.push(`Kader: ${error.message}`);
+    errors.push(`${ligaName} Kader: ${error.message}`);
   }
 
-  res.status(200).json({ success: true, teamsUpserted, matchesUpserted, squadsUpserted, errors });
+  return { teamsUpserted, matchesUpserted, squadsUpserted };
+}
+
+export const config = {
+  maxDuration: 60,
+};
+
+export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+  const errors = [];
+  const ergebnisse = {};
+
+  for (const liga of LIGEN) {
+    ergebnisse[liga.name] = await verarbeiteLiga(liga.code, liga.name, errors);
+    await warten(1200);
+  }
+
+  res.status(200).json({ success: true, ergebnisse, errors });
 }
