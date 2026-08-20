@@ -51,7 +51,7 @@ export default function Stats() {
           ))}
         </div>
 
-        <h2 style={{ fontSize: "12px", marginBottom: "8px", color: "#8CFF3C", letterSpacing: "0.5px" }}>⚽ SPIELE</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "10px", color: "#8CFF3C", letterSpacing: "0.5px" }}>⚽ Ankommende Spiele</h2>
         {loading && <p style={{ fontSize: "12px", color: "#6E6E6E", marginBottom: "18px" }}>Lädt...</p>}
         {!loading && spiele.length === 0 && <p style={{ fontSize: "12px", color: "#6E6E6E", marginBottom: "18px" }}>Für diesen Wettbewerb liegen aktuell keine Spiele vor.</p>}
         <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "24px" }}>

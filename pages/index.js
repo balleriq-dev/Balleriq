@@ -3,6 +3,16 @@ import Link from "next/link";
 import { getAllNews } from "../lib/newsData";
 import { getTop5Spiele } from "../lib/statsData";
 
+function formatDatum(datum) {
+  if (!datum) return "";
+  const heute = new Date();
+  const d = new Date(datum + "T00:00:00");
+  const diffTage = Math.round((d - new Date(heute.toDateString())) / 86400000);
+  if (diffTage === 0) return "Heute";
+  if (diffTage === 1) return "Morgen";
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+}
+
 export default function Home() {
   const [newsData, setNewsData] = useState([]);
   const [topSpiele, setTopSpiele] = useState([]);
@@ -22,6 +32,20 @@ export default function Home() {
   }, [topSpiele]);
 
   const matchOfTheDay = topSpiele[aktuellerIndex];
+
+  let touchStartX = null;
+  const onTouchStart = (e) => {
+    touchStartX = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e) => {
+    if (touchStartX == null || topSpiele.length < 2) return;
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) setAktuellerIndex((i) => (i + 1) % topSpiele.length);
+      else setAktuellerIndex((i) => (i - 1 + topSpiele.length) % topSpiele.length);
+    }
+    touchStartX = null;
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif" }}>
@@ -73,14 +97,21 @@ export default function Home() {
             <p style={{ fontSize: "12px", color: "#6E6E6E" }}>Aktuell keine Spiele verfügbar.</p>
           </div>
         ) : (
-          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px", boxShadow: "0 0 20px rgba(140,255,60,0.05)" }}>
-            <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "10px" }}>{matchOfTheDay.liga}</p>
+          <div
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+            style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px", boxShadow: "0 0 20px rgba(140,255,60,0.05)", touchAction: "pan-y" }}
+          >
+            <div style={{ textAlign: "center", marginBottom: "14px" }}>
+              <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "4px" }}>{matchOfTheDay.liga}</p>
+              <p style={{ fontSize: "13px", fontWeight: 700 }}>{formatDatum(matchOfTheDay.datum)} · {matchOfTheDay.zeit}</p>
+            </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <Link href={`/team/${matchOfTheDay.heimId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
                 {matchOfTheDay.heimLogo && <img src={matchOfTheDay.heimLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
                 <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.heim}</span>
               </Link>
-              <span style={{ fontSize: "12px", color: "#9A9A9A" }}>{matchOfTheDay.zeit}</span>
+              <span style={{ fontSize: "11px", color: "#6E6E6E" }}>vs</span>
               <Link href={`/team/${matchOfTheDay.gastId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
                 <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.gast}</span>
                 {matchOfTheDay.gastLogo && <img src={matchOfTheDay.gastLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
