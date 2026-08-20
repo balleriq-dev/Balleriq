@@ -17,6 +17,9 @@ async function apiFootball(path) {
     headers: RAPIDAPI_HEADERS,
   });
   const data = await response.json();
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} bei ${path}: ${data.message || JSON.stringify(data).slice(0, 200)}`);
+  }
   if (data.errors && Object.keys(data.errors).length > 0) {
     throw new Error(`API-Football Fehler bei ${path}: ${JSON.stringify(data.errors)}`);
   }
@@ -26,12 +29,18 @@ async function apiFootball(path) {
 async function findeAktuelleSaison() {
   const jetzt = new Date();
   const kandidat = jetzt.getMonth() >= 5 ? jetzt.getFullYear() : jetzt.getFullYear() - 1;
+  let letzterFehler = null;
   for (const jahr of [kandidat, kandidat - 1, kandidat + 1]) {
-    const standings = await apiFootball(`/standings?league=${LEAGUE_ID}&season=${jahr}`);
-    if (standings?.[0]?.league?.standings?.[0]?.length > 0) {
-      return { jahr, standings };
+    try {
+      const standings = await apiFootball(`/standings?league=${LEAGUE_ID}&season=${jahr}`);
+      if (standings?.[0]?.league?.standings?.[0]?.length > 0) {
+        return { jahr, standings };
+      }
+    } catch (error) {
+      letzterFehler = error;
     }
   }
+  if (letzterFehler) throw letzterFehler;
   return { jahr: kandidat, standings: [] };
 }
 
