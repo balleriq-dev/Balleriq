@@ -19,13 +19,20 @@ async function footballData(path) {
 }
 
 function berechnePrediction(heim, gast) {
-  const heimForm = (heim?.punkte || 0) / Math.max(heim?.spiele || 1, 1);
-  const gastForm = (gast?.punkte || 0) / Math.max(gast?.spiele || 1, 1);
-  const heimStaerke = heimForm + 0.35; // Heimvorteil
-  const gastStaerke = gastForm;
-  const gesamt = heimStaerke + gastStaerke || 1;
-  const pHeim = Math.round((heimStaerke / gesamt) * 75);
-  const pGast = Math.round((gastStaerke / gesamt) * 75);
+  const heimSpiele = heim?.spiele || 0;
+  const gastSpiele = gast?.spiele || 0;
+
+  if (heimSpiele === 0 && gastSpiele === 0) {
+    return { pHeim: 40, pX: 28, pGast: 32 };
+  }
+
+  const heimForm = (heim?.punkte || 0) / Math.max(heimSpiele, 1);
+  const gastForm = (gast?.punkte || 0) / Math.max(gastSpiele, 1);
+  const heimStaerke = heimForm + 0.5; // Heimvorteil
+  const gastStaerke = gastForm + 0.15;
+  const gesamt = heimStaerke + gastStaerke;
+  let pHeim = Math.max(Math.round((heimStaerke / gesamt) * 70), 8);
+  let pGast = Math.max(Math.round((gastStaerke / gesamt) * 70), 8);
   const pX = 100 - pHeim - pGast;
   return { pHeim, pX, pGast };
 }
