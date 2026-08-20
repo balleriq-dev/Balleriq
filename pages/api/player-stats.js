@@ -6,6 +6,7 @@ const RAPIDAPI_HEADERS = {
 const SEASON = 2026;
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   const { id } = req.query;
   if (!id) return res.status(400).json({ available: false, error: "id fehlt" });
 

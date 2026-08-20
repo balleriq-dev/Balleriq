@@ -38,6 +38,7 @@ function berechnePrediction(heim, gast) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   const errors = [];
   let teamsUpserted = 0;
   let matchesUpserted = 0;

@@ -110,6 +110,7 @@ async function rewriteArticle(title, description) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   const candidates = [];
 
   for (const url of SOURCES) {
