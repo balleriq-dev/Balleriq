@@ -30,7 +30,7 @@ function berechnePrediction(heim, gast) {
   const gastSpiele = gast?.spiele || 0;
 
   if (heimSpiele === 0 && gastSpiele === 0) {
-    return { pHeim: 40, pX: 28, pGast: 32 };
+    return { pHeim: null, pX: null, pGast: null };
   }
 
   const heimForm = (heim?.punkte || 0) / Math.max(heimSpiele, 1);
