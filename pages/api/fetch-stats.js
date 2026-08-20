@@ -5,14 +5,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const LIGEN = [
-  { code: "BL1", name: "Bundesliga" },
-  { code: "PL", name: "Premier League" },
-  { code: "PD", name: "La Liga" },
-  { code: "SA", name: "Serie A" },
-  { code: "FL1", name: "Ligue 1" },
-  { code: "CL", name: "Champions League" },
-];
+const LIGEN = {
+  BL1: "Bundesliga",
+  PL: "Premier League",
+  PD: "La Liga",
+  SA: "Serie A",
+  FL1: "Ligue 1",
+  CL: "Champions League",
+};
 
 async function footballData(path) {
   const response = await fetch(`https://api.football-data.org/v4${path}`, {
@@ -89,6 +89,8 @@ async function verarbeiteLiga(code, ligaName, errors) {
     errors.push(`${ligaName} Tabelle: ${error.message}`);
   }
 
+  await warten(4000);
+
   try {
     const matchesData = await footballData(`/competitions/${code}/matches?status=SCHEDULED`);
     const fixtures = (matchesData?.matches || []).slice(0, 10);
@@ -122,6 +124,8 @@ async function verarbeiteLiga(code, ligaName, errors) {
     errors.push(`${ligaName} Spielplan: ${error.message}`);
   }
 
+  await warten(4000);
+
   try {
     const teamsData = await footballData(`/competitions/${code}/teams`);
     const spielerRows = [];
@@ -154,12 +158,18 @@ export const config = {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const errors = [];
-  const ergebnisse = {};
 
-  for (const liga of LIGEN) {
-    ergebnisse[liga.name] = await verarbeiteLiga(liga.code, liga.name, errors);
-    await warten(1200);
+  const code = req.query.liga || "BL1";
+  const ligaName = LIGEN[code];
+
+  if (!ligaName) {
+    return res.status(400).json({
+      success: false,
+      error: `Unbekannter Liga-Code: ${code}. Erlaubt: ${Object.keys(LIGEN).join(", ")}`,
+    });
   }
 
-  res.status(200).json({ success: true, ergebnisse, errors });
+  const ergebnis = await verarbeiteLiga(code, ligaName, errors);
+
+  res.status(200).json({ success: true, liga: ligaName, ...ergebnis, errors });
 }
