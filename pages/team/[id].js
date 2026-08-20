@@ -36,7 +36,6 @@ export default function TeamDetail() {
   const stats = [
     ["Tore / Spiel", team.torePro ?? "-"],
     ["Gegentore / Spiel", team.gegentorePro ?? "-"],
-    ["Karten / Spiel", team.karten ?? "-"],
   ];
 
   return (
