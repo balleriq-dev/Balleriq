@@ -29,6 +29,7 @@ export default function SpielDetail() {
   const { id } = router.query;
   const [spiel, setSpiel] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [h2h, setH2h] = useState(null);
 
   useEffect(() => {
     if (!id) return;
@@ -36,6 +37,10 @@ export default function SpielDetail() {
       setSpiel(data);
       setLoading(false);
     });
+    fetch(`/api/h2h?fixtureId=${id}`)
+      .then((r) => r.json())
+      .then(setH2h)
+      .catch(() => setH2h({ available: false }));
   }, [id]);
 
   if (loading) {
@@ -115,9 +120,32 @@ export default function SpielDetail() {
           <Vergleichszeile label="Tore / Spiel" heimVal={spiel.heimStats?.torePro} gastVal={spiel.gastStats?.torePro} />
           <Vergleichszeile label="Gegentore / Spiel" heimVal={spiel.heimStats?.gegentorePro} gastVal={spiel.gastStats?.gegentorePro} />
         </div>
-        <p style={{ fontSize: "10px", color: "#6E6E6E", marginTop: "10px", textAlign: "center" }}>
+        <p style={{ fontSize: "10px", color: "#6E6E6E", marginTop: "10px", textAlign: "center", marginBottom: "24px" }}>
           Basiert auf Saison-Durchschnitt. Schüsse, Ecken und Karten sind aktuell nicht verfügbar.
         </p>
+
+        <h2 style={{ fontSize: "12px", marginBottom: "14px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>H2H – DIREKTE DUELLE</h2>
+        {h2h?.available && h2h.spiele.length > 0 && (
+          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
+            {h2h.spiele.map((m, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < h2h.spiele.length - 1 ? "1px solid #1A1A1A" : "none" }}>
+                <span style={{ fontSize: "10px", color: "#6E6E6E", width: "60px" }}>{m.datum}</span>
+                <span style={{ flex: 1, fontSize: "12px", textAlign: "right", paddingRight: "10px" }}>{m.heim}</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#8CFF3C" }}>{m.heimTore} : {m.gastTore}</span>
+                <span style={{ flex: 1, fontSize: "12px", paddingLeft: "10px" }}>{m.gast}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {h2h?.available && h2h.spiele.length === 0 && (
+          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Diese Teams sind bisher noch nicht gegeneinander angetreten.</p>
+        )}
+        {h2h && !h2h.available && (
+          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>H2H-Daten aktuell nicht verfügbar.</p>
+        )}
+        {!h2h && (
+          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Lädt...</p>
+        )}
       </section>
     </div>
   );

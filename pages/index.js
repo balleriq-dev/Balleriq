@@ -1,13 +1,27 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAllNews } from "../lib/newsData";
+import { getTop5Spiele } from "../lib/statsData";
 
 export default function Home() {
   const [newsData, setNewsData] = useState([]);
+  const [topSpiele, setTopSpiele] = useState([]);
+  const [aktuellerIndex, setAktuellerIndex] = useState(0);
 
   useEffect(() => {
     getAllNews().then((data) => setNewsData(data.slice(0, 3)));
+    getTop5Spiele().then(setTopSpiele);
   }, []);
+
+  useEffect(() => {
+    if (topSpiele.length < 2) return;
+    const timer = setInterval(() => {
+      setAktuellerIndex((i) => (i + 1) % topSpiele.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [topSpiele]);
+
+  const matchOfTheDay = topSpiele[aktuellerIndex];
 
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif" }}>
@@ -43,38 +57,61 @@ export default function Home() {
 
       {/* HERO: Match of the Day */}
       <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "28px 20px" }}>
-        <p style={{ fontSize: "12px", color: "#8CFF3C", letterSpacing: "1px", marginBottom: "10px" }}>⚡ MATCH OF THE DAY</p>
-        <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px", boxShadow: "0 0 20px rgba(140,255,60,0.05)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <span style={{ fontSize: "16px", fontWeight: 600 }}>Real Madrid</span>
-            <span style={{ fontSize: "12px", color: "#9A9A9A" }}>20:45</span>
-            <span style={{ fontSize: "16px", fontWeight: 600 }}>Barcelona</span>
-          </div>
-
-          <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "6px" }}>BALLERIQ PREDICTION</p>
-          {[["Real Madrid", 62], ["Unentschieden", 21], ["Barcelona", 17]].map(([label, val]) => (
-            <div key={label} style={{ marginBottom: "8px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#9A9A9A", marginBottom: "3px" }}>
-                <span>{label}</span><span>{val}%</span>
-              </div>
-              <div style={{ height: "5px", background: "#1A1A1A", borderRadius: "3px", overflow: "hidden" }}>
-                <div style={{ width: `${val}%`, height: "100%", background: "#8CFF3C" }} />
-              </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+          <p style={{ fontSize: "12px", color: "#8CFF3C", letterSpacing: "1px" }}>⚡ MATCH OF THE DAY</p>
+          {topSpiele.length > 1 && (
+            <div style={{ display: "flex", gap: "4px" }}>
+              {topSpiele.map((_, i) => (
+                <span key={i} onClick={() => setAktuellerIndex(i)} style={{ width: "6px", height: "6px", borderRadius: "50%", background: i === aktuellerIndex ? "#8CFF3C" : "#1A1A1A", cursor: "pointer" }} />
+              ))}
             </div>
-          ))}
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginTop: "18px", fontSize: "11px", color: "#9A9A9A" }}>
-            <div>xG <b style={{ color: "#F2F2F0" }}>1.8</b></div>
-            <div>Ballbesitz <b style={{ color: "#F2F2F0" }}>58%</b></div>
-            <div>Ecken <b style={{ color: "#F2F2F0" }}>6</b></div>
-          </div>
-
-          <Link href="/match-analyse">
-            <button style={{ marginTop: "18px", width: "100%", padding: "12px", background: "#8CFF3C", color: "#000", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "13px" }}>
-              MATCH ANALYSIEREN →
-            </button>
-          </Link>
+          )}
         </div>
+
+        {!matchOfTheDay ? (
+          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px" }}>
+            <p style={{ fontSize: "12px", color: "#6E6E6E" }}>Aktuell keine Spiele verfügbar.</p>
+          </div>
+        ) : (
+          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "12px", padding: "20px", boxShadow: "0 0 20px rgba(140,255,60,0.05)" }}>
+            <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "10px" }}>{matchOfTheDay.liga}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <Link href={`/team/${matchOfTheDay.heimId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
+                {matchOfTheDay.heimLogo && <img src={matchOfTheDay.heimLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
+                <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.heim}</span>
+              </Link>
+              <span style={{ fontSize: "12px", color: "#9A9A9A" }}>{matchOfTheDay.zeit}</span>
+              <Link href={`/team/${matchOfTheDay.gastId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
+                <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.gast}</span>
+                {matchOfTheDay.gastLogo && <img src={matchOfTheDay.gastLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
+              </Link>
+            </div>
+
+            {matchOfTheDay.pHeim != null ? (
+              <>
+                <p style={{ fontSize: "11px", color: "#8CFF3C", marginBottom: "6px" }}>BALLERIQ PREDICTION</p>
+                {[[matchOfTheDay.heim, matchOfTheDay.pHeim], ["Unentschieden", matchOfTheDay.pX], [matchOfTheDay.gast, matchOfTheDay.pGast]].map(([label, val]) => (
+                  <div key={label} style={{ marginBottom: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#9A9A9A", marginBottom: "3px" }}>
+                      <span>{label}</span><span>{val}%</span>
+                    </div>
+                    <div style={{ height: "5px", background: "#1A1A1A", borderRadius: "3px", overflow: "hidden" }}>
+                      <div style={{ width: `${val}%`, height: "100%", background: "#8CFF3C" }} />
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <p style={{ fontSize: "11px", color: "#6E6E6E" }}>Prediction noch nicht verfügbar</p>
+            )}
+
+            <Link href={`/spiel/${matchOfTheDay.id}`}>
+              <button style={{ marginTop: "18px", width: "100%", padding: "12px", background: "#8CFF3C", color: "#000", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "13px" }}>
+                MATCH ANALYSIEREN →
+              </button>
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* AI INSIGHT */}
