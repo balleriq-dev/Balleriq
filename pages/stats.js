@@ -62,10 +62,10 @@ export default function Stats() {
                   {s.heimLogo && <img src={s.heimLogo} alt="" style={{ width: "16px", height: "16px", objectFit: "contain", flexShrink: 0 }} />}
                   <span style={{ fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.heim}</span>
                 </Link>
-                <div style={{ textAlign: "center", flexShrink: 0 }}>
+                <Link href={`/spiel/${s.id}`} style={{ textAlign: "center", flexShrink: 0, textDecoration: "none" }}>
                   <div style={{ fontSize: "9px", color: "#6E6E6E" }}>{formatDatum(s.datum)}</div>
                   <div style={{ fontSize: "10px", color: "#9A9A9A" }}>{s.zeit}</div>
-                </div>
+                </Link>
                 <Link href={`/team/${s.gastId}`} style={{ flex: 1, display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end", textDecoration: "none", color: "inherit", minWidth: 0 }}>
                   <span style={{ fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right" }}>{s.gast}</span>
                   {s.gastLogo && <img src={s.gastLogo} alt="" style={{ width: "16px", height: "16px", objectFit: "contain", flexShrink: 0 }} />}
