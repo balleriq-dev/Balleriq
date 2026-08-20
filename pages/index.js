@@ -106,15 +106,15 @@ export default function Home() {
               <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "4px" }}>{matchOfTheDay.liga}</p>
               <p style={{ fontSize: "13px", fontWeight: 700 }}>{formatDatum(matchOfTheDay.datum)} · {matchOfTheDay.zeit}</p>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <Link href={`/team/${matchOfTheDay.heimId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
-                {matchOfTheDay.heimLogo && <img src={matchOfTheDay.heimLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
-                <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.heim}</span>
+            <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+              <Link href={`/team/${matchOfTheDay.heimId}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit", minWidth: 0 }}>
+                {matchOfTheDay.heimLogo && <img src={matchOfTheDay.heimLogo} alt="" style={{ width: "28px", height: "28px", objectFit: "contain" }} />}
+                <span style={{ fontSize: "13px", fontWeight: 600, textAlign: "center" }}>{matchOfTheDay.heim}</span>
               </Link>
-              <span style={{ fontSize: "11px", color: "#6E6E6E" }}>vs</span>
-              <Link href={`/team/${matchOfTheDay.gastId}`} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}>
-                <span style={{ fontSize: "15px", fontWeight: 600 }}>{matchOfTheDay.gast}</span>
-                {matchOfTheDay.gastLogo && <img src={matchOfTheDay.gastLogo} alt="" style={{ width: "22px", height: "22px", objectFit: "contain" }} />}
+              <span style={{ fontSize: "11px", color: "#6E6E6E", width: "28px", textAlign: "center", flexShrink: 0 }}>vs</span>
+              <Link href={`/team/${matchOfTheDay.gastId}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", textDecoration: "none", color: "inherit", minWidth: 0 }}>
+                {matchOfTheDay.gastLogo && <img src={matchOfTheDay.gastLogo} alt="" style={{ width: "28px", height: "28px", objectFit: "contain" }} />}
+                <span style={{ fontSize: "13px", fontWeight: 600, textAlign: "center" }}>{matchOfTheDay.gast}</span>
               </Link>
             </div>
 

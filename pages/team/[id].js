@@ -10,6 +10,7 @@ export default function TeamDetail() {
   const { id } = router.query;
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [letzteSpiele, setLetzteSpiele] = useState(null);
 
   useEffect(() => {
     if (!id) return;
@@ -17,6 +18,10 @@ export default function TeamDetail() {
       setTeam(data);
       setLoading(false);
     });
+    fetch(`/api/team-recent?teamId=${id}`)
+      .then((r) => r.json())
+      .then(setLetzteSpiele)
+      .catch(() => setLetzteSpiele({ available: false }));
   }, [id]);
 
   if (loading) {
@@ -79,9 +84,33 @@ export default function TeamDetail() {
           ))}
         </div>
 
-        <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "18px" }}>
+        <p style={{ fontSize: "10px", color: "#6E6E6E", marginBottom: "24px" }}>
           Ecken, Fouls und Ballbesitz pro Spiel sind über unsere aktuelle Datenquelle nicht verfügbar.
         </p>
+
+        <h2 style={{ fontSize: "12px", marginBottom: "8px", color: "#8CFF3C", letterSpacing: "0.5px" }}>📅 LETZTE 5 SPIELE</h2>
+        {letzteSpiele?.available && letzteSpiele.spiele.length > 0 && (
+          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "8px", overflow: "hidden", marginBottom: "24px" }}>
+            {letzteSpiele.spiele.map((m, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", padding: "9px 12px", borderBottom: i < letzteSpiele.spiele.length - 1 ? "1px solid #1A1A1A" : "none" }}>
+                <span style={{ width: "18px", height: "18px", borderRadius: "4px", background: formFarbe[m.ergebnis], fontSize: "9px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700, marginRight: "10px", flexShrink: 0 }}>
+                  {m.ergebnis}
+                </span>
+                <span style={{ flex: 1, fontSize: "12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {m.heimspiel ? "vs" : "bei"} {m.gegner}
+                </span>
+                <span style={{ fontSize: "12px", fontWeight: 700 }}>{m.eigenesTor} : {m.gegnerTor}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {letzteSpiele?.available && letzteSpiele.spiele.length === 0 && (
+          <p style={{ fontSize: "12px", color: "#6E6E6E", marginBottom: "24px" }}>Noch keine beendeten Spiele in dieser Saison.</p>
+        )}
+        {letzteSpiele && !letzteSpiele.available && (
+          <p style={{ fontSize: "12px", color: "#6E6E6E", marginBottom: "24px" }}>Letzte Spiele aktuell nicht verfügbar.</p>
+        )}
+        {!letzteSpiele && <p style={{ fontSize: "12px", color: "#6E6E6E", marginBottom: "24px" }}>Lädt...</p>}
 
         <h2 style={{ fontSize: "12px", marginBottom: "8px", color: "#8CFF3C", letterSpacing: "0.5px" }}>👥 KADER</h2>
         {team.kader.length === 0 && <p style={{ fontSize: "12px", color: "#6E6E6E" }}>Kader wird noch geladen.</p>}
