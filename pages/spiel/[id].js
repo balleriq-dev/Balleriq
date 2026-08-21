@@ -33,6 +33,72 @@ function Vergleichszeile({ label, heimVal, gastVal }) {
   );
 }
 
+function initialen(name) {
+  return (name || "")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(-2)
+    .join("")
+    .toUpperCase();
+}
+
+function SpielerKreis({ p, farbe }) {
+  return (
+    <Link href={p.id ? `/spieler/${p.id}` : "#"} style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", alignItems: "center", width: "58px" }}>
+      <div style={{ position: "relative" }}>
+        <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#141414", border: `2px solid ${farbe}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700, color: farbe }}>
+          {initialen(p.name)}
+        </div>
+        {p.nummer != null && (
+          <span style={{ position: "absolute", bottom: "-4px", right: "-4px", background: farbe, color: "#000", fontSize: "8px", fontWeight: 700, borderRadius: "50%", width: "15px", height: "15px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {p.nummer}
+          </span>
+        )}
+      </div>
+      <p style={{ fontSize: "9px", marginTop: "4px", textAlign: "center", lineHeight: 1.2 }}>{p.name}</p>
+    </Link>
+  );
+}
+
+function Spielfeld({ heimName, gastName, heimSpieler, gastSpieler, heimFarbe, gastFarbe }) {
+  const heimReihen = [
+    heimSpieler.filter((p) => positionsGruppe(p.pos) === "Tor"),
+    heimSpieler.filter((p) => positionsGruppe(p.pos) === "Abwehr"),
+    heimSpieler.filter((p) => positionsGruppe(p.pos) === "Mittelfeld"),
+    heimSpieler.filter((p) => positionsGruppe(p.pos) === "Sturm"),
+  ];
+  const gastReihen = [
+    gastSpieler.filter((p) => positionsGruppe(p.pos) === "Sturm"),
+    gastSpieler.filter((p) => positionsGruppe(p.pos) === "Mittelfeld"),
+    gastSpieler.filter((p) => positionsGruppe(p.pos) === "Abwehr"),
+    gastSpieler.filter((p) => positionsGruppe(p.pos) === "Tor"),
+  ];
+
+  const Reihe = ({ spieler, farbe }) => (
+    <div style={{ display: "flex", justifyContent: "space-evenly", padding: "10px 4px" }}>
+      {spieler.map((p, i) => <SpielerKreis key={i} p={p} farbe={farbe} />)}
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: "relative", background: "linear-gradient(180deg, #1a4d2e 0%, #0f3320 50%, #1a4d2e 100%)",
+      borderRadius: "12px", border: "1px solid #1A1A1A", padding: "12px 0", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "1px", background: "rgba(255,255,255,0.25)" }} />
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "70px", height: "70px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.25)" }} />
+      <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "40%", height: "12%", border: "1px solid rgba(255,255,255,0.25)", borderTop: "none" }} />
+      <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "40%", height: "12%", border: "1px solid rgba(255,255,255,0.25)", borderBottom: "none" }} />
+
+      <div style={{ position: "relative" }}>
+        {heimReihen.map((reihe, i) => <Reihe key={"h" + i} spieler={reihe} farbe={heimFarbe} />)}
+        {gastReihen.map((reihe, i) => <Reihe key={"g" + i} spieler={reihe} farbe={gastFarbe} />)}
+      </div>
+    </div>
+  );
+}
+
 function Kaderliste({ titel, kader }) {
   const gruppen = ["Tor", "Abwehr", "Mittelfeld", "Sturm", "Sonstige"];
   return (
@@ -195,20 +261,31 @@ export default function SpielDetail() {
 
         {tab === "aufstellung" && (
           <>
-            {lineup?.available && (
-              <p style={{ fontSize: "10px", color: "#8CFF3C", textAlign: "center", marginBottom: "14px" }}>
-                ✓ Offizielle Aufstellung {lineup.heimFormation && `(${lineup.heimFormation} / ${lineup.gastFormation})`}
-              </p>
+            {lineup?.available ? (
+              <>
+                <p style={{ fontSize: "10px", color: "#8CFF3C", textAlign: "center", marginBottom: "10px" }}>
+                  ✓ Offizielle Aufstellung {lineup.heimFormation && `(${lineup.heimFormation} / ${lineup.gastFormation})`}
+                </p>
+                <Spielfeld
+                  heimName={spiel.heim}
+                  gastName={spiel.gast}
+                  heimSpieler={lineup.heim}
+                  gastSpieler={lineup.gast}
+                  heimFarbe="#8CFF3C"
+                  gastFarbe="#5CA8FF"
+                />
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "10px", color: "#6E6E6E", textAlign: "center", marginBottom: "14px" }}>
+                  Offizielle Aufstellung wird ca. 1 Stunde vor Anpfiff veröffentlicht. Bis dahin: aktueller Kader.
+                </p>
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <Kaderliste titel={spiel.heim} kader={heimKader || []} />
+                  <Kaderliste titel={spiel.gast} kader={gastKader || []} />
+                </div>
+              </>
             )}
-            {lineup && !lineup.available && (
-              <p style={{ fontSize: "10px", color: "#6E6E6E", textAlign: "center", marginBottom: "14px" }}>
-                Offizielle Aufstellung wird ca. 1 Stunde vor Anpfiff veröffentlicht. Bis dahin: aktueller Kader.
-              </p>
-            )}
-            <div style={{ display: "flex", gap: "16px" }}>
-              <Kaderliste titel={spiel.heim} kader={lineup?.available ? lineup.heim.map((p, i) => ({ id: `h${i}`, name: p.name, pos: p.pos })) : heimKader || []} />
-              <Kaderliste titel={spiel.gast} kader={lineup?.available ? lineup.gast.map((p, i) => ({ id: `g${i}`, name: p.name, pos: p.pos })) : gastKader || []} />
-            </div>
           </>
         )}
 

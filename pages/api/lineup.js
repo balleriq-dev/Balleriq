@@ -24,8 +24,8 @@ export default async function handler(req, res) {
       offiziell: true,
       heimFormation: data.homeTeam?.formation || null,
       gastFormation: data.awayTeam?.formation || null,
-      heim: heimLineup.map((p) => ({ name: p.name, pos: p.position })),
-      gast: gastLineup.map((p) => ({ name: p.name, pos: p.position })),
+      heim: heimLineup.map((p) => ({ name: p.name, pos: p.position, nummer: p.shirtNumber ?? null })),
+      gast: gastLineup.map((p) => ({ name: p.name, pos: p.position, nummer: p.shirtNumber ?? null })),
     });
   } catch (error) {
     res.status(200).json({ available: false, error: error.message });
