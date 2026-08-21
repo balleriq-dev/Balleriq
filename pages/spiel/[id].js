@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { getSpielDetail } from "../../lib/statsData";
+import { getSpielDetail, getTeam } from "../../lib/statsData";
 
 const formFarbe = { S: "#8CFF3C", U: "#6E6E6E", N: "#5A5A5A", W: "#8CFF3C", D: "#6E6E6E", L: "#5A5A5A" };
+
+function positionsGruppe(pos) {
+  const p = (pos || "").toLowerCase();
+  if (p.includes("keeper") || p.includes("tor")) return "Tor";
+  if (p.includes("back") || p.includes("defen") || p.includes("abwehr")) return "Abwehr";
+  if (p.includes("midfield") || p.includes("mittelfeld")) return "Mittelfeld";
+  if (p.includes("forward") || p.includes("wing") || p.includes("striker") || p.includes("sturm")) return "Sturm";
+  return "Sonstige";
+}
 
 function Vergleichszeile({ label, heimVal, gastVal }) {
   const h = Number(heimVal) || 0;
@@ -24,23 +33,64 @@ function Vergleichszeile({ label, heimVal, gastVal }) {
   );
 }
 
+function Kaderliste({ titel, kader }) {
+  const gruppen = ["Tor", "Abwehr", "Mittelfeld", "Sturm", "Sonstige"];
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ fontSize: "11px", fontWeight: 700, marginBottom: "10px", textAlign: "center" }}>{titel}</p>
+      {gruppen.map((g) => {
+        const spieler = kader.filter((p) => positionsGruppe(p.pos) === g);
+        if (spieler.length === 0) return null;
+        return (
+          <div key={g} style={{ marginBottom: "10px" }}>
+            <p style={{ fontSize: "9px", color: "#6E6E6E", marginBottom: "4px" }}>{g}</p>
+            {spieler.map((p) => (
+              <Link key={p.id} href={`/spieler/${p.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                <p style={{ fontSize: "11px", padding: "3px 0" }}>{p.name}</p>
+              </Link>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function SpielDetail() {
   const router = useRouter();
   const { id } = router.query;
   const [spiel, setSpiel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [h2h, setH2h] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [lineup, setLineup] = useState(null);
+  const [heimKader, setHeimKader] = useState(null);
+  const [gastKader, setGastKader] = useState(null);
+  const [tab, setTab] = useState("uebersicht");
 
   useEffect(() => {
     if (!id) return;
     getSpielDetail(id).then((data) => {
       setSpiel(data);
       setLoading(false);
+      if (data) {
+        const params = new URLSearchParams({
+          heim: data.heim,
+          gast: data.gast,
+          heimForm: (data.heimStats?.form || []).join(""),
+          gastForm: (data.gastStats?.form || []).join(""),
+          heimPlatz: data.heimStats?.platz ?? "",
+          gastPlatz: data.gastStats?.platz ?? "",
+          heimTore: data.heimStats?.torePro ?? "",
+          gastTore: data.gastStats?.torePro ?? "",
+        });
+        fetch(`/api/matchpreview?${params}`).then((r) => r.json()).then(setPreview).catch(() => setPreview({ available: false }));
+        getTeam(data.heimId).then((t) => setHeimKader(t?.kader || []));
+        getTeam(data.gastId).then((t) => setGastKader(t?.kader || []));
+      }
     });
-    fetch(`/api/h2h?fixtureId=${id}`)
-      .then((r) => r.json())
-      .then(setH2h)
-      .catch(() => setH2h({ available: false }));
+    fetch(`/api/h2h?fixtureId=${id}`).then((r) => r.json()).then(setH2h).catch(() => setH2h({ available: false }));
+    fetch(`/api/lineup?fixtureId=${id}`).then((r) => r.json()).then(setLineup).catch(() => setLineup({ available: false }));
   }, [id]);
 
   if (loading) {
@@ -59,6 +109,12 @@ export default function SpielDetail() {
     );
   }
 
+  const tabs = [
+    ["uebersicht", "Übersicht"],
+    ["aufstellung", "Aufstellung"],
+    ["statistiken", "Statistiken"],
+  ];
+
   return (
     <div style={{ minHeight: "100vh", background: "#000", color: "#F2F2F0", fontFamily: "Inter, sans-serif", fontSize: "13px" }}>
       <nav style={{ position: "sticky", top: 0, zIndex: 20, padding: "12px 20px", borderBottom: "1px solid #1A1A1A", background: "rgba(0,0,0,0.95)" }}>
@@ -68,7 +124,7 @@ export default function SpielDetail() {
       <section style={{ maxWidth: "760px", margin: "0 auto", padding: "20px 14px 50px" }}>
         <p style={{ fontSize: "11px", color: "#8CFF3C", textAlign: "center", marginBottom: "16px" }}>{spiel.liga}</p>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <Link href={`/team/${spiel.heimId}`} style={{ flex: 1, textDecoration: "none", color: "inherit", textAlign: "center" }}>
             {spiel.heimLogo && <img src={spiel.heimLogo} alt="" style={{ width: "48px", height: "48px", objectFit: "contain", marginBottom: "8px" }} />}
             <p style={{ fontSize: "13px", fontWeight: 600 }}>{spiel.heim}</p>
@@ -83,68 +139,112 @@ export default function SpielDetail() {
           </Link>
         </div>
 
-        {spiel.pHeim != null ? (
-          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "14px", marginBottom: "24px" }}>
-            <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "8px", textAlign: "center" }}>BALLERIQ PREDICTION</p>
-            <div style={{ display: "flex", gap: "6px" }}>
-              {[["1", spiel.pHeim], ["X", spiel.pX], ["2", spiel.pGast]].map(([label, val]) => (
-                <div key={label} style={{ flex: 1, background: "#141414", borderRadius: "6px", padding: "8px", textAlign: "center" }}>
-                  <div style={{ fontSize: "10px", color: "#6E6E6E" }}>{label}</div>
-                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#8CFF3C" }}>{val}%</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center", marginBottom: "24px" }}>Prediction noch nicht verfügbar</p>
-        )}
-
-        {(spiel.heimStats?.form?.length > 0 || spiel.gastStats?.form?.length > 0) && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "24px" }}>
-            <div style={{ display: "flex", gap: "4px" }}>
-              {(spiel.heimStats?.form || []).map((f, j) => (
-                <span key={j} style={{ width: "16px", height: "16px", borderRadius: "50%", background: formFarbe[f] || "#5A5A5A", fontSize: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700 }}>{f}</span>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: "4px" }}>
-              {(spiel.gastStats?.form || []).map((f, j) => (
-                <span key={j} style={{ width: "16px", height: "16px", borderRadius: "50%", background: formFarbe[f] || "#5A5A5A", fontSize: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700 }}>{f}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <h2 style={{ fontSize: "12px", marginBottom: "14px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>SAISON-VERGLEICH</h2>
-        <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "16px" }}>
-          <Vergleichszeile label="Tabellenplatz" heimVal={spiel.heimStats?.platz} gastVal={spiel.gastStats?.platz} />
-          <Vergleichszeile label="Tore / Spiel" heimVal={spiel.heimStats?.torePro} gastVal={spiel.gastStats?.torePro} />
-          <Vergleichszeile label="Gegentore / Spiel" heimVal={spiel.heimStats?.gegentorePro} gastVal={spiel.gastStats?.gegentorePro} />
+        <div style={{ display: "flex", gap: "6px", marginBottom: "20px", borderBottom: "1px solid #1A1A1A" }}>
+          {tabs.map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              style={{ flex: 1, padding: "10px 0", background: "transparent", border: "none", borderBottom: tab === key ? "2px solid #8CFF3C" : "2px solid transparent",
+                color: tab === key ? "#8CFF3C" : "#9A9A9A", fontSize: "12px", fontWeight: tab === key ? 700 : 400 }}>
+              {label}
+            </button>
+          ))}
         </div>
-        <p style={{ fontSize: "10px", color: "#6E6E6E", marginTop: "10px", textAlign: "center", marginBottom: "24px" }}>
-          Basiert auf Saison-Durchschnitt. Schüsse, Ecken und Karten sind aktuell nicht verfügbar.
-        </p>
 
-        <h2 style={{ fontSize: "12px", marginBottom: "14px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>H2H – DIREKTE DUELLE</h2>
-        {h2h?.available && h2h.spiele.length > 0 && (
-          <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
-            {h2h.spiele.map((m, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < h2h.spiele.length - 1 ? "1px solid #1A1A1A" : "none" }}>
-                <span style={{ fontSize: "10px", color: "#6E6E6E", width: "60px" }}>{m.datum}</span>
-                <span style={{ flex: 1, fontSize: "12px", textAlign: "right", paddingRight: "10px" }}>{m.heim}</span>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "#8CFF3C" }}>{m.heimTore} : {m.gastTore}</span>
-                <span style={{ flex: 1, fontSize: "12px", paddingLeft: "10px" }}>{m.gast}</span>
+        {tab === "uebersicht" && (
+          <>
+            <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "14px", marginBottom: "20px" }}>
+              <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "8px" }}>🧠 BALLERIQ ANALYSE</p>
+              {preview?.available ? (
+                <p style={{ fontSize: "12px", lineHeight: 1.6, color: "#D0D0D0" }}>{preview.text}</p>
+              ) : (
+                <p style={{ fontSize: "12px", color: "#6E6E6E" }}>{preview ? "Analyse aktuell nicht verfügbar." : "Analyse wird geladen..."}</p>
+              )}
+            </div>
+
+            {spiel.pHeim != null ? (
+              <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "14px", marginBottom: "20px" }}>
+                <p style={{ fontSize: "10px", color: "#8CFF3C", marginBottom: "8px", textAlign: "center" }}>BALLERIQ PREDICTION</p>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {[["1", spiel.pHeim], ["X", spiel.pX], ["2", spiel.pGast]].map(([label, val]) => (
+                    <div key={label} style={{ flex: 1, background: "#141414", borderRadius: "6px", padding: "8px", textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#6E6E6E" }}>{label}</div>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "#8CFF3C" }}>{val}%</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center", marginBottom: "20px" }}>Prediction noch nicht verfügbar</p>
+            )}
+
+            {(spiel.heimStats?.form?.length > 0 || spiel.gastStats?.form?.length > 0) && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {(spiel.heimStats?.form || []).map((f, j) => (
+                    <span key={j} style={{ width: "16px", height: "16px", borderRadius: "50%", background: formFarbe[f] || "#5A5A5A", fontSize: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700 }}>{f}</span>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {(spiel.gastStats?.form || []).map((f, j) => (
+                    <span key={j} style={{ width: "16px", height: "16px", borderRadius: "50%", background: formFarbe[f] || "#5A5A5A", fontSize: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700 }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
-        {h2h?.available && h2h.spiele.length === 0 && (
-          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Diese Teams sind bisher noch nicht gegeneinander angetreten.</p>
+
+        {tab === "aufstellung" && (
+          <>
+            {lineup?.available && (
+              <p style={{ fontSize: "10px", color: "#8CFF3C", textAlign: "center", marginBottom: "14px" }}>
+                ✓ Offizielle Aufstellung {lineup.heimFormation && `(${lineup.heimFormation} / ${lineup.gastFormation})`}
+              </p>
+            )}
+            {lineup && !lineup.available && (
+              <p style={{ fontSize: "10px", color: "#6E6E6E", textAlign: "center", marginBottom: "14px" }}>
+                Offizielle Aufstellung wird ca. 1 Stunde vor Anpfiff veröffentlicht. Bis dahin: aktueller Kader.
+              </p>
+            )}
+            <div style={{ display: "flex", gap: "16px" }}>
+              <Kaderliste titel={spiel.heim} kader={lineup?.available ? lineup.heim.map((p, i) => ({ id: `h${i}`, name: p.name, pos: p.pos })) : heimKader || []} />
+              <Kaderliste titel={spiel.gast} kader={lineup?.available ? lineup.gast.map((p, i) => ({ id: `g${i}`, name: p.name, pos: p.pos })) : gastKader || []} />
+            </div>
+          </>
         )}
-        {h2h && !h2h.available && (
-          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>H2H-Daten aktuell nicht verfügbar.</p>
-        )}
-        {!h2h && (
-          <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Lädt...</p>
+
+        {tab === "statistiken" && (
+          <>
+            <h2 style={{ fontSize: "12px", marginBottom: "14px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>SAISON-VERGLEICH</h2>
+            <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", padding: "16px", marginBottom: "10px" }}>
+              <Vergleichszeile label="Tabellenplatz" heimVal={spiel.heimStats?.platz} gastVal={spiel.gastStats?.platz} />
+              <Vergleichszeile label="Tore / Spiel" heimVal={spiel.heimStats?.torePro} gastVal={spiel.gastStats?.torePro} />
+              <Vergleichszeile label="Gegentore / Spiel" heimVal={spiel.heimStats?.gegentorePro} gastVal={spiel.gastStats?.gegentorePro} />
+            </div>
+            <p style={{ fontSize: "10px", color: "#6E6E6E", textAlign: "center", marginBottom: "24px" }}>
+              Basiert auf Saison-Durchschnitt. Schüsse, Ecken und Karten sind aktuell nicht verfügbar.
+            </p>
+
+            <h2 style={{ fontSize: "12px", marginBottom: "14px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>H2H – DIREKTE DUELLE</h2>
+            {h2h?.available && h2h.spiele.length > 0 && (
+              <div style={{ background: "#0A0A0A", border: "1px solid #1A1A1A", borderRadius: "10px", overflow: "hidden" }}>
+                {h2h.spiele.map((m, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < h2h.spiele.length - 1 ? "1px solid #1A1A1A" : "none" }}>
+                    <span style={{ fontSize: "10px", color: "#6E6E6E", width: "60px" }}>{m.datum}</span>
+                    <span style={{ flex: 1, fontSize: "12px", textAlign: "right", paddingRight: "10px" }}>{m.heim}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#8CFF3C" }}>{m.heimTore} : {m.gastTore}</span>
+                    <span style={{ flex: 1, fontSize: "12px", paddingLeft: "10px" }}>{m.gast}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {h2h?.available && h2h.spiele.length === 0 && (
+              <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Diese Teams sind bisher noch nicht gegeneinander angetreten.</p>
+            )}
+            {h2h && !h2h.available && (
+              <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>H2H-Daten aktuell nicht verfügbar.</p>
+            )}
+            {!h2h && <p style={{ fontSize: "12px", color: "#6E6E6E", textAlign: "center" }}>Lädt...</p>}
+          </>
         )}
       </section>
     </div>
