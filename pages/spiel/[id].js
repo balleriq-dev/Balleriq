@@ -132,6 +132,7 @@ export default function SpielDetail() {
   const [lineup, setLineup] = useState(null);
   const [heimKader, setHeimKader] = useState(null);
   const [gastKader, setGastKader] = useState(null);
+  const [live, setLive] = useState(null);
   const [tab, setTab] = useState("uebersicht");
 
   useEffect(() => {
@@ -153,10 +154,18 @@ export default function SpielDetail() {
         fetch(`/api/matchpreview?${params}`).then((r) => r.json()).then(setPreview).catch(() => setPreview({ available: false }));
         getTeam(data.heimId).then((t) => setHeimKader(t?.kader || []));
         getTeam(data.gastId).then((t) => setGastKader(t?.kader || []));
+        fetch(`/api/lineup?fixtureId=${id}&heimId=${data.heimId}&gastId=${data.gastId}`)
+          .then((r) => r.json())
+          .then(setLineup)
+          .catch(() => setLineup({ available: false }));
       }
     });
     fetch(`/api/h2h?fixtureId=${id}`).then((r) => r.json()).then(setH2h).catch(() => setH2h({ available: false }));
-    fetch(`/api/lineup?fixtureId=${id}`).then((r) => r.json()).then(setLineup).catch(() => setLineup({ available: false }));
+
+    const holeLive = () => fetch(`/api/livescore?fixtureId=${id}`).then((r) => r.json()).then(setLive).catch(() => {});
+    holeLive();
+    const timer = setInterval(holeLive, 45000);
+    return () => clearInterval(timer);
   }, [id]);
 
   if (loading) {
@@ -196,8 +205,22 @@ export default function SpielDetail() {
             <p style={{ fontSize: "13px", fontWeight: 600 }}>{spiel.heim}</p>
           </Link>
           <div style={{ textAlign: "center", padding: "0 12px" }}>
-            <p style={{ fontSize: "18px", fontWeight: 700 }}>{spiel.zeit}</p>
-            <p style={{ fontSize: "11px", color: "#9A9A9A" }}>{spiel.datum}</p>
+            {live?.available && ["IN_PLAY", "PAUSED", "LIVE"].includes(live.status) ? (
+              <>
+                <p style={{ fontSize: "20px", fontWeight: 700, color: "#8CFF3C" }}>{live.heimTore ?? 0} : {live.gastTore ?? 0}</p>
+                <p style={{ fontSize: "10px", color: "#8CFF3C" }}>🔴 LIVE {live.minute ? `${live.minute}'` : ""}</p>
+              </>
+            ) : live?.available && live.status === "FINISHED" ? (
+              <>
+                <p style={{ fontSize: "20px", fontWeight: 700 }}>{live.heimTore} : {live.gastTore}</p>
+                <p style={{ fontSize: "10px", color: "#6E6E6E" }}>Abgepfiffen</p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "18px", fontWeight: 700 }}>{spiel.zeit}</p>
+                <p style={{ fontSize: "11px", color: "#9A9A9A" }}>{spiel.datum}</p>
+              </>
+            )}
           </div>
           <Link href={`/team/${spiel.gastId}`} style={{ flex: 1, textDecoration: "none", color: "inherit", textAlign: "center" }}>
             {spiel.gastLogo && <img src={spiel.gastLogo} alt="" style={{ width: "48px", height: "48px", objectFit: "contain", marginBottom: "8px" }} />}
@@ -263,8 +286,10 @@ export default function SpielDetail() {
           <>
             {lineup?.available ? (
               <>
-                <p style={{ fontSize: "10px", color: "#8CFF3C", textAlign: "center", marginBottom: "10px" }}>
-                  ✓ Offizielle Aufstellung {lineup.heimFormation && `(${lineup.heimFormation} / ${lineup.gastFormation})`}
+                <p style={{ fontSize: "10px", color: lineup.quelle === "aktuell" ? "#8CFF3C" : "#9A9A9A", textAlign: "center", marginBottom: "10px" }}>
+                  {lineup.quelle === "aktuell"
+                    ? `✓ Offizielle Aufstellung ${lineup.heimFormation ? `(${lineup.heimFormation} / ${lineup.gastFormation})` : ""}`
+                    : "Voraussichtliche Aufstellung (Basis: letztes Spiel)"}
                 </p>
                 <Spielfeld
                   heimName={spiel.heim}
