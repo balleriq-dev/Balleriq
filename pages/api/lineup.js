@@ -10,6 +10,7 @@ async function holeLineupAusSpiel(matchId, teamId) {
   return {
     formation: seite.formation || null,
     spieler: seite.lineup.map((p) => ({ name: p.name, pos: p.position, nummer: p.shirtNumber ?? null })),
+    bank: (seite.bench || []).map((p) => ({ name: p.name, pos: p.position, nummer: p.shirtNumber ?? null })),
   };
 }
 
@@ -55,6 +56,8 @@ export default async function handler(req, res) {
       gastFormation: gast?.formation || null,
       heim: heim?.spieler || [],
       gast: gast?.spieler || [],
+      heimBank: heim?.bank || [],
+      gastBank: gast?.bank || [],
     });
   } catch (error) {
     res.status(200).json({ available: false, error: error.message });

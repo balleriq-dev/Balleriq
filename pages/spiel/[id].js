@@ -299,6 +299,30 @@ export default function SpielDetail() {
                   heimFarbe="#8CFF3C"
                   gastFarbe="#5CA8FF"
                 />
+
+                {(lineup.heimBank?.length > 0 || lineup.gastBank?.length > 0) && (
+                  <div style={{ marginTop: "20px" }}>
+                    <h2 style={{ fontSize: "11px", marginBottom: "10px", color: "#8CFF3C", letterSpacing: "0.5px", textAlign: "center" }}>ERSATZBANK</h2>
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {(lineup.heimBank || []).map((p, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 0", fontSize: "11px" }}>
+                            <span style={{ color: "#6E6E6E", width: "18px" }}>{p.nummer ?? "-"}</span>
+                            <span>{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {(lineup.gastBank || []).map((p, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 0", fontSize: "11px" }}>
+                            <span style={{ color: "#6E6E6E", width: "18px" }}>{p.nummer ?? "-"}</span>
+                            <span>{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>

@@ -15,11 +15,13 @@ export default function SpielerDetail() {
     getSpielerBasis(id).then((data) => {
       setP(data);
       setLoading(false);
+      if (data?.name) {
+        fetch(`/api/player-stats?name=${encodeURIComponent(data.name)}`)
+          .then((r) => r.json())
+          .then(setLiveStats)
+          .catch(() => setLiveStats({ available: false }));
+      }
     });
-    fetch(`/api/player-stats?id=${id}`)
-      .then((r) => r.json())
-      .then(setLiveStats)
-      .catch(() => setLiveStats({ available: false }));
   }, [id]);
 
   if (loading) {
@@ -57,7 +59,7 @@ export default function SpielerDetail() {
 
       <section style={{ maxWidth: "800px", margin: "0 auto", padding: "28px 20px 60px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "10px" }}>
-          {p.foto && <img src={p.foto} alt="" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover" }} />}
+          {(liveStats?.foto || p.foto) && <img src={liveStats?.foto || p.foto} alt="" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover" }} />}
           <div>
             <p style={{ fontSize: "11px", color: "#8CFF3C" }}>{p.pos}</p>
             <h1 style={{ fontSize: "24px", fontWeight: 700 }}>{p.name}</h1>
