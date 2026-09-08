@@ -91,37 +91,56 @@ async function verarbeiteLiga(code, ligaName, errors) {
 
   await warten(4000);
 
+  function baueMatchRow(fx) {
+    const { pHeim, pX, pGast } = berechnePrediction(teamLookup[fx.homeTeam.id], teamLookup[fx.awayTeam.id]);
+    return {
+      id: String(fx.id),
+      liga: ligaName,
+      heim_id: String(fx.homeTeam.id),
+      heim_name: fx.homeTeam.name,
+      heim_logo: fx.homeTeam.crest,
+      gast_id: String(fx.awayTeam.id),
+      gast_name: fx.awayTeam.name,
+      gast_logo: fx.awayTeam.crest,
+      datum: fx.utcDate ? fx.utcDate.slice(0, 10) : null,
+      zeit: fx.utcDate ? fx.utcDate.slice(11, 16) : null,
+      p_heim: pHeim,
+      p_x: pX,
+      p_gast: pGast,
+      heim_tore: fx.score?.fullTime?.home ?? null,
+      gast_tore: fx.score?.fullTime?.away ?? null,
+      status: fx.status,
+    };
+  }
+
   try {
     const matchesData = await footballData(`/competitions/${code}/matches?status=SCHEDULED`);
     const fixtures = (matchesData?.matches || []).slice(0, 10);
-
-    const matchRows = fixtures.map((fx) => {
-      const { pHeim, pX, pGast } = berechnePrediction(teamLookup[fx.homeTeam.id], teamLookup[fx.awayTeam.id]);
-      return {
-        id: String(fx.id),
-        liga: ligaName,
-        heim_id: String(fx.homeTeam.id),
-        heim_name: fx.homeTeam.name,
-        heim_logo: fx.homeTeam.crest,
-        gast_id: String(fx.awayTeam.id),
-        gast_name: fx.awayTeam.name,
-        gast_logo: fx.awayTeam.crest,
-        datum: fx.utcDate ? fx.utcDate.slice(0, 10) : null,
-        zeit: fx.utcDate ? fx.utcDate.slice(11, 16) : null,
-        p_heim: pHeim,
-        p_x: pX,
-        p_gast: pGast,
-        status: fx.status,
-      };
-    });
+    const matchRows = fixtures.map(baueMatchRow);
 
     if (matchRows.length > 0) {
       const { error } = await supabase.from("spiele").upsert(matchRows);
       if (error) errors.push(`${ligaName} Spielplan: ${error.message}`);
-      else matchesUpserted = matchRows.length;
+      else matchesUpserted += matchRows.length;
     }
   } catch (error) {
     errors.push(`${ligaName} Spielplan: ${error.message}`);
+  }
+
+  await warten(4000);
+
+  try {
+    const finishedData = await footballData(`/competitions/${code}/matches?status=FINISHED`);
+    const fixtures = (finishedData?.matches || []).slice(-5);
+    const matchRows = fixtures.map(baueMatchRow);
+
+    if (matchRows.length > 0) {
+      const { error } = await supabase.from("spiele").upsert(matchRows);
+      if (error) errors.push(`${ligaName} Ergebnisse: ${error.message}`);
+      else matchesUpserted += matchRows.length;
+    }
+  } catch (error) {
+    errors.push(`${ligaName} Ergebnisse: ${error.message}`);
   }
 
   await warten(4000);

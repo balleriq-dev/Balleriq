@@ -63,8 +63,17 @@ export default function Stats() {
                   <span style={{ fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.heim}</span>
                 </Link>
                 <Link href={`/spiel/${s.id}`} style={{ textAlign: "center", flexShrink: 0, textDecoration: "none" }}>
-                  <div style={{ fontSize: "9px", color: "#6E6E6E" }}>{formatDatum(s.datum)}</div>
-                  <div style={{ fontSize: "10px", color: "#9A9A9A" }}>{s.zeit}</div>
+                  {s.beendet ? (
+                    <>
+                      <div style={{ fontSize: "14px", fontWeight: 700, color: "#F2F2F0" }}>{s.heimTore} : {s.gastTore}</div>
+                      <div style={{ fontSize: "9px", color: "#6E6E6E" }}>Beendet</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: "9px", color: "#6E6E6E" }}>{formatDatum(s.datum)}</div>
+                      <div style={{ fontSize: "10px", color: "#9A9A9A" }}>{s.zeit}</div>
+                    </>
+                  )}
                 </Link>
                 <Link href={`/team/${s.gastId}`} style={{ flex: 1, display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end", textDecoration: "none", color: "inherit", minWidth: 0 }}>
                   <span style={{ fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right" }}>{s.gast}</span>
@@ -72,21 +81,23 @@ export default function Stats() {
                 </Link>
               </div>
 
-              {s.pHeim != null ? (
-                <div style={{ marginTop: "8px" }}>
-                  <div style={{ display: "flex", height: "5px", borderRadius: "3px", overflow: "hidden", background: "#1A1A1A" }}>
-                    <div style={{ width: `${s.pHeim}%`, background: "#8CFF3C" }} />
-                    <div style={{ width: `${s.pX}%`, background: "#5A5A5A" }} />
-                    <div style={{ width: `${s.pGast}%`, background: "#3A3A3A" }} />
+              {!s.beendet && (
+                s.pHeim != null ? (
+                  <div style={{ marginTop: "8px" }}>
+                    <div style={{ display: "flex", height: "5px", borderRadius: "3px", overflow: "hidden", background: "#1A1A1A" }}>
+                      <div style={{ width: `${s.pHeim}%`, background: "#8CFF3C" }} />
+                      <div style={{ width: `${s.pX}%`, background: "#5A5A5A" }} />
+                      <div style={{ width: `${s.pGast}%`, background: "#3A3A3A" }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "3px", fontSize: "9px", color: "#6E6E6E" }}>
+                      <span>{s.heim.split(" ")[0]} {s.pHeim}%</span>
+                      <span>X {s.pX}%</span>
+                      <span>{s.gast.split(" ")[0]} {s.pGast}%</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "3px", fontSize: "9px", color: "#6E6E6E" }}>
-                    <span>{s.heim.split(" ")[0]} {s.pHeim}%</span>
-                    <span>X {s.pX}%</span>
-                    <span>{s.gast.split(" ")[0]} {s.pGast}%</span>
-                  </div>
-                </div>
-              ) : (
-                <p style={{ fontSize: "10px", color: "#6E6E6E", marginTop: "6px" }}>Prediction noch nicht verfügbar</p>
+                ) : (
+                  <p style={{ fontSize: "10px", color: "#6E6E6E", marginTop: "6px" }}>Prediction noch nicht verfügbar</p>
+                )
               )}
             </div>
           ))}
