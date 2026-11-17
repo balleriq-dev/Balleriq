@@ -9,6 +9,7 @@ const SOURCES = [
   "https://newsfeed.kicker.de/news/aktuell",
   "https://newsfeed.kicker.de/news/bundesliga",
   "https://newsfeed.kicker.de/news/champions-league",
+  "https://newsfeed.kicker.de/news/nationalmannschaft",
   "https://feeds.bbci.co.uk/sport/football/rss.xml",
   "https://www.skysports.com/rss/12040",
   "https://www.espn.com/espn/rss/soccer/news",
